@@ -8,6 +8,7 @@ import {
   contractLabel,
 } from "./diff";
 import { Violation } from "./threshold";
+import { PolicyOrigin } from "./threshold";
 
 export const COMMENT_MARKER = "<!-- weighin-report -->";
 
@@ -147,19 +148,33 @@ function renderFunctionTable(fn: FunctionDiff): string {
     return `| ${t} | ${label} | ${base} | ${head} | ${delta} | ${pct} | ${limit} |`;
   });
 
+  const provenanceDetails: string[] = [];
+  if (fn.head_provenance) {
+    provenanceDetails.push(
+      `Snapshot ledgers: BASE ${fn.base_provenance?.ledger ?? "Unavailable"} → HEAD ${fn.head_provenance.ledger}.`,
+      `Compute config SHA256: BASE \`${fn.base_provenance?.compute_config_sha256 ?? "Unavailable"}\` → HEAD \`${fn.head_provenance.compute_config_sha256}\`.`,
+      `Full config SHA256: BASE \`${fn.base_provenance?.config_sha256 ?? "Unavailable"}\` → HEAD \`${fn.head_provenance.config_sha256}\`.`,
+      `Resource limits SHA256: BASE \`${fn.base_provenance?.resource_limits_sha256 ?? "Unavailable"}\` → HEAD \`${fn.head_provenance.resource_limits_sha256 ?? "Unavailable"}\`.`,
+      `Helper SHA256: BASE \`${fn.base_provenance?.helper_sha256 ?? "Unavailable"}\` → HEAD \`${fn.head_provenance.helper_sha256}\`.`,
+    );
+  }
+  provenanceDetails.push(
+    ...fn.metrics
+      .filter(
+        (m) => m.head.source || m.head.limit_source || m.head.limit_reason,
+      )
+      .map(
+        (m) =>
+          `- **${METRIC_LABELS[m.key]}** source: ${m.head.source ? `\`${m.head.source}\`` : "Unavailable"}; limit: ${m.head.limit_source ? `\`${m.head.limit_source}\`` : (m.head.limit_reason ?? "Unavailable")}.`,
+      ),
+  );
+
   return [
     `#### \`${benchmarkLabel(fn)}\``,
     "",
     ...(fn.head_provenance
       ? [
           `Compute source: ${fn.head_provenance.source} ${fn.head_provenance.source_version}; protocol ${fn.head_provenance.protocol}.`,
-          `Snapshot ledgers: BASE ${fn.base_provenance?.ledger} → HEAD ${fn.head_provenance.ledger}; compute config SHA256: \`${fn.head_provenance.compute_config_sha256}\`.`,
-          `Full config SHA256: BASE \`${fn.base_provenance?.config_sha256}\` → HEAD \`${fn.head_provenance.config_sha256}\`.`,
-          ...(fn.head_provenance.resource_limits_sha256
-            ? [
-                `Resource limits SHA256: \`${fn.head_provenance.resource_limits_sha256}\`.`,
-              ]
-            : []),
           "",
         ]
       : []),
@@ -170,12 +185,16 @@ function renderFunctionTable(fn: FunctionDiff): string {
     ...fn.metrics
       .filter((m) => m.availability === "unavailable")
       .map((m) => `- **${metricLabel(m)} unavailable**: ${m.reason}`),
-    ...fn.metrics
-      .filter((m) => m.head.limit_source || m.head.limit_reason)
-      .map(
-        (m) =>
-          `- **${METRIC_LABELS[m.key]}** source: \`${m.head.source}\`; limit: ${m.head.limit_source ? `\`${m.head.limit_source}\`` : m.head.limit_reason}.`,
-      ),
+    ...(provenanceDetails.length > 0
+      ? [
+          "",
+          "<details><summary>Snapshot and metric provenance</summary>",
+          "",
+          ...provenanceDetails,
+          "",
+          "</details>",
+        ]
+      : []),
   ].join("\n");
 }
 
@@ -231,6 +250,7 @@ export function renderComment(
   violations: Violation[],
   baseRef: string,
   headSha: string,
+  policyOrigin?: PolicyOrigin,
 ): string {
   const lines: string[] = [];
 
@@ -245,6 +265,12 @@ export function renderComment(
       : "**All thresholds passed**";
   lines.push(`## ${statusEmoji} WeighIn Benchmark Report`);
   lines.push("");
+  if (policyOrigin) {
+    lines.push(
+      `Policy source: **${policyOrigin.mode}** \`${policyOrigin.path}\` at \`${policyOrigin.revision}\`; content SHA256 \`${policyOrigin.content_sha256}\`.`,
+    );
+    lines.push("");
+  }
   lines.push(
     `${statusText} — comparing \`${baseRef}\` → \`${headSha.slice(0, 8)}\``,
   );

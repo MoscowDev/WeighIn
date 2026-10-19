@@ -202,8 +202,8 @@ var require_file_command = __commonJS({
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.issueFileCommand = issueFileCommand;
     exports2.prepareKeyValueMessage = prepareKeyValueMessage;
-    var crypto4 = __importStar(require("crypto"));
-    var fs7 = __importStar(require("fs"));
+    var crypto5 = __importStar(require("crypto"));
+    var fs6 = __importStar(require("fs"));
     var os3 = __importStar(require("os"));
     var utils_1 = require_utils();
     function issueFileCommand(command, message) {
@@ -211,15 +211,15 @@ var require_file_command = __commonJS({
       if (!filePath) {
         throw new Error(`Unable to find environment variable for file command ${command}`);
       }
-      if (!fs7.existsSync(filePath)) {
+      if (!fs6.existsSync(filePath)) {
         throw new Error(`Missing file at path: ${filePath}`);
       }
-      fs7.appendFileSync(filePath, `${(0, utils_1.toCommandValue)(message)}${os3.EOL}`, {
+      fs6.appendFileSync(filePath, `${(0, utils_1.toCommandValue)(message)}${os3.EOL}`, {
         encoding: "utf8"
       });
     }
     function prepareKeyValueMessage(key, value) {
-      const delimiter = `ghadelimiter_${crypto4.randomUUID()}`;
+      const delimiter = `ghadelimiter_${crypto5.randomUUID()}`;
       const convertedValue = (0, utils_1.toCommandValue)(value);
       if (key.includes(delimiter)) {
         throw new Error(`Unexpected input: name should not contain the delimiter "${delimiter}"`);
@@ -4301,11 +4301,11 @@ var require_util2 = __commonJS({
     var { isUint8Array } = require("node:util/types");
     var { webidl } = require_webidl();
     var supportedHashes = [];
-    var crypto4;
+    var crypto5;
     try {
-      crypto4 = require("node:crypto");
+      crypto5 = require("node:crypto");
       const possibleRelevantHashes = ["sha256", "sha384", "sha512"];
-      supportedHashes = crypto4.getHashes().filter((hash2) => possibleRelevantHashes.includes(hash2));
+      supportedHashes = crypto5.getHashes().filter((hash2) => possibleRelevantHashes.includes(hash2));
     } catch {
     }
     function responseURL(response) {
@@ -4578,7 +4578,7 @@ var require_util2 = __commonJS({
       }
     }
     function bytesMatch(bytes, metadataList) {
-      if (crypto4 === void 0) {
+      if (crypto5 === void 0) {
         return true;
       }
       const parsedMetadata = parseMetadata(metadataList);
@@ -4593,7 +4593,7 @@ var require_util2 = __commonJS({
       for (const item of metadata) {
         const algorithm = item.algo;
         const expectedValue = item.hash;
-        let actualValue = crypto4.createHash(algorithm).update(bytes).digest("base64");
+        let actualValue = crypto5.createHash(algorithm).update(bytes).digest("base64");
         if (actualValue[actualValue.length - 1] === "=") {
           if (actualValue[actualValue.length - 2] === "=") {
             actualValue = actualValue.slice(0, -2);
@@ -5657,8 +5657,8 @@ var require_body = __commonJS({
     var { multipartFormDataParser } = require_formdata_parser();
     var random;
     try {
-      const crypto4 = require("node:crypto");
-      random = (max) => crypto4.randomInt(0, max);
+      const crypto5 = require("node:crypto");
+      random = (max) => crypto5.randomInt(0, max);
     } catch {
       random = (max) => Math.floor(Math.random(max));
     }
@@ -17256,13 +17256,13 @@ var require_frame = __commonJS({
     "use strict";
     var { maxUnsigned16Bit } = require_constants5();
     var BUFFER_SIZE = 16386;
-    var crypto4;
+    var crypto5;
     var buffer = null;
     var bufIdx = BUFFER_SIZE;
     try {
-      crypto4 = require("node:crypto");
+      crypto5 = require("node:crypto");
     } catch {
-      crypto4 = {
+      crypto5 = {
         // not full compatibility, but minimum.
         randomFillSync: function randomFillSync(buffer2, _offset, _size) {
           for (let i = 0; i < buffer2.length; ++i) {
@@ -17275,7 +17275,7 @@ var require_frame = __commonJS({
     function generateMask() {
       if (bufIdx === BUFFER_SIZE) {
         bufIdx = 0;
-        crypto4.randomFillSync(buffer ??= Buffer.allocUnsafe(BUFFER_SIZE), 0, BUFFER_SIZE);
+        crypto5.randomFillSync(buffer ??= Buffer.allocUnsafe(BUFFER_SIZE), 0, BUFFER_SIZE);
       }
       return [buffer[bufIdx++], buffer[bufIdx++], buffer[bufIdx++], buffer[bufIdx++]];
     }
@@ -17347,9 +17347,9 @@ var require_connection = __commonJS({
     var { Headers: Headers2, getHeadersList } = require_headers();
     var { getDecodeSplit } = require_util2();
     var { WebsocketFrameSend } = require_frame();
-    var crypto4;
+    var crypto5;
     try {
-      crypto4 = require("node:crypto");
+      crypto5 = require("node:crypto");
     } catch {
     }
     function establishWebSocketConnection(url, protocols, client, ws, onEstablish, options) {
@@ -17369,7 +17369,7 @@ var require_connection = __commonJS({
         const headersList = getHeadersList(new Headers2(options.headers));
         request3.headersList = headersList;
       }
-      const keyValue = crypto4.randomBytes(16).toString("base64");
+      const keyValue = crypto5.randomBytes(16).toString("base64");
       request3.headersList.append("sec-websocket-key", keyValue);
       request3.headersList.append("sec-websocket-version", "13");
       for (const protocol of protocols) {
@@ -17399,7 +17399,7 @@ var require_connection = __commonJS({
             return;
           }
           const secWSAccept = response.headersList.get("Sec-WebSocket-Accept");
-          const digest = crypto4.createHash("sha1").update(keyValue + uid).digest("base64");
+          const digest = crypto5.createHash("sha1").update(keyValue + uid).digest("base64");
           if (secWSAccept !== digest) {
             failWebsocketConnection(ws, "Incorrect hash received in Sec-WebSocket-Accept header.");
             return;
@@ -20546,12 +20546,12 @@ var require_io_util = __commonJS({
     var _a2;
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.getCmdPath = exports2.tryGetExecutablePath = exports2.isRooted = exports2.isDirectory = exports2.exists = exports2.READONLY = exports2.UV_FS_O_EXLOCK = exports2.IS_WINDOWS = exports2.unlink = exports2.symlink = exports2.stat = exports2.rmdir = exports2.rm = exports2.rename = exports2.readlink = exports2.readdir = exports2.open = exports2.mkdir = exports2.lstat = exports2.copyFile = exports2.chmod = void 0;
-    var fs7 = __importStar(require("fs"));
+    var fs6 = __importStar(require("fs"));
     var path7 = __importStar(require("path"));
-    _a2 = fs7.promises, exports2.chmod = _a2.chmod, exports2.copyFile = _a2.copyFile, exports2.lstat = _a2.lstat, exports2.mkdir = _a2.mkdir, exports2.open = _a2.open, exports2.readdir = _a2.readdir, exports2.readlink = _a2.readlink, exports2.rename = _a2.rename, exports2.rm = _a2.rm, exports2.rmdir = _a2.rmdir, exports2.stat = _a2.stat, exports2.symlink = _a2.symlink, exports2.unlink = _a2.unlink;
+    _a2 = fs6.promises, exports2.chmod = _a2.chmod, exports2.copyFile = _a2.copyFile, exports2.lstat = _a2.lstat, exports2.mkdir = _a2.mkdir, exports2.open = _a2.open, exports2.readdir = _a2.readdir, exports2.readlink = _a2.readlink, exports2.rename = _a2.rename, exports2.rm = _a2.rm, exports2.rmdir = _a2.rmdir, exports2.stat = _a2.stat, exports2.symlink = _a2.symlink, exports2.unlink = _a2.unlink;
     exports2.IS_WINDOWS = process.platform === "win32";
     exports2.UV_FS_O_EXLOCK = 268435456;
-    exports2.READONLY = fs7.constants.O_RDONLY;
+    exports2.READONLY = fs6.constants.O_RDONLY;
     function exists(fsPath) {
       return __awaiter2(this, void 0, void 0, function* () {
         try {
@@ -31115,7 +31115,7 @@ var require_toml = __commonJS({
 var core3 = __toESM(require_core());
 var exec5 = __toESM(require_exec());
 init_github();
-var fs6 = __toESM(require("fs"));
+var fs5 = __toESM(require("fs"));
 var path6 = __toESM(require("path"));
 var os2 = __toESM(require("os"));
 
@@ -35168,7 +35168,7 @@ var coerce = {
 };
 var NEVER = INVALID;
 
-// src/diff.ts
+// src/record-schema.ts
 var METRIC_KEYS = [
   "cpu_instructions",
   "memory_bytes",
@@ -35182,26 +35182,628 @@ var METRIC_KEYS = [
   "events_count",
   "event_data_bytes"
 ];
+var MeasurementRecordValidationError = class extends Error {
+  path;
+  version;
+  code;
+  diagnostics;
+  constructor(diagnostics) {
+    const first = diagnostics[0] ?? {
+      path: "$",
+      version: "unknown",
+      code: "INVALID_RECORD",
+      message: "Invalid measurement record"
+    };
+    super(`${first.message} [path: ${first.path}]`);
+    this.name = "MeasurementRecordValidationError";
+    this.path = first.path;
+    this.version = first.version;
+    this.code = first.code;
+    this.diagnostics = diagnostics;
+  }
+};
+var CONTRACT_ALLOWED_KEYS = /* @__PURE__ */ new Set([
+  "schema_version",
+  "fixture_id",
+  "logical_id",
+  "contract_id",
+  "git_commit",
+  "soroban_sdk_version",
+  "timestamp",
+  "benchmarks"
+]);
+var BENCHMARK_ALLOWED_KEYS = /* @__PURE__ */ new Set([
+  "function_name",
+  "case_id",
+  "metrics",
+  "wasm_sha256",
+  "provenance"
+]);
+var METRIC_VALUE_ALLOWED_KEYS = /* @__PURE__ */ new Set([
+  "availability",
+  "consumed",
+  "limit",
+  "reason",
+  "source",
+  "limit_source",
+  "limit_reason"
+]);
+var PROVENANCE_ALLOWED_KEYS = /* @__PURE__ */ new Set([
+  "source",
+  "source_version",
+  "protocol",
+  "helper_sha256",
+  "network_id",
+  "ledger",
+  "header_sha256",
+  "snapshot_sha256",
+  "config_sha256",
+  "compute_config_sha256",
+  "input_sha256",
+  "seed",
+  "auth_mode",
+  "host_features",
+  "resource_limits_sha256"
+]);
+var PROVENANCE_REQUIRED_STRINGS = [
+  "source",
+  "source_version",
+  "helper_sha256",
+  "network_id",
+  "compute_config_sha256",
+  "header_sha256",
+  "snapshot_sha256",
+  "config_sha256",
+  "input_sha256",
+  "auth_mode"
+];
+var METRIC_KEY_SET = new Set(METRIC_KEYS);
+var SHA256_HEX_PATTERN = /^[a-f0-9]{64}$/;
+function isPlainObject3(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+function nonblank(value) {
+  return typeof value === "string" && value.trim().length > 0;
+}
+function detectRecordEnvelopeVersion(record) {
+  if (!isPlainObject3(record)) return "unknown";
+  const hasLogical = record.schema_version !== void 0 || record.fixture_id !== void 0 || record.logical_id !== void 0;
+  if (!hasLogical) return "legacy";
+  if (record.schema_version === 2 || record.schema_version === 3 || record.schema_version === 4) {
+    return record.schema_version;
+  }
+  return "unknown";
+}
+function validateProvenanceObject(provenance, version2, pPath, diagnostics) {
+  if (!isPlainObject3(provenance)) {
+    diagnostics.push({
+      path: pPath,
+      version: version2,
+      code: "INVALID_PROVENANCE_OBJECT",
+      message: `Schema ${version2} benchmarks require compute provenance`
+    });
+    return;
+  }
+  for (const key of Object.keys(provenance)) {
+    if (!PROVENANCE_ALLOWED_KEYS.has(key)) {
+      diagnostics.push({
+        path: `${pPath}.${key}`,
+        version: version2,
+        code: "UNKNOWN_PROVENANCE_FIELD",
+        message: `Invalid compute provenance: unexpected field ${key}`
+      });
+    }
+  }
+  for (const field of PROVENANCE_REQUIRED_STRINGS) {
+    if (!nonblank(provenance[field])) {
+      diagnostics.push({
+        path: `${pPath}.${field}`,
+        version: version2,
+        code: "INVALID_PROVENANCE_FIELD",
+        message: `Invalid compute provenance: ${field}`
+      });
+    }
+  }
+  if (!Number.isSafeInteger(provenance.ledger) || provenance.ledger < 0) {
+    diagnostics.push({
+      path: `${pPath}.ledger`,
+      version: version2,
+      code: "INVALID_PROVENANCE_LEDGER",
+      message: "Invalid compute provenance: ledger/protocol/host_features"
+    });
+  }
+  if (!Number.isSafeInteger(provenance.protocol) || provenance.protocol <= 0) {
+    diagnostics.push({
+      path: `${pPath}.protocol`,
+      version: version2,
+      code: "INVALID_PROVENANCE_PROTOCOL",
+      message: "Invalid compute provenance: ledger/protocol/host_features"
+    });
+  }
+  if (!Array.isArray(provenance.host_features) || !provenance.host_features.every(nonblank)) {
+    diagnostics.push({
+      path: `${pPath}.host_features`,
+      version: version2,
+      code: "INVALID_PROVENANCE_HOST_FEATURES",
+      message: "Invalid compute provenance: ledger/protocol/host_features"
+    });
+  }
+  if (!Array.isArray(provenance.seed) || provenance.seed.length !== 32 || !provenance.seed.every(
+    (value) => Number.isInteger(value) && value >= 0 && value <= 255
+  )) {
+    diagnostics.push({
+      path: `${pPath}.seed`,
+      version: version2,
+      code: "INVALID_PROVENANCE_SEED",
+      message: "Invalid compute provenance: seed"
+    });
+  }
+  if (provenance.resource_limits_sha256 !== void 0 && (typeof provenance.resource_limits_sha256 !== "string" || !SHA256_HEX_PATTERN.test(provenance.resource_limits_sha256))) {
+    diagnostics.push({
+      path: `${pPath}.resource_limits_sha256`,
+      version: version2,
+      code: "INVALID_RESOURCE_LIMITS_DIGEST",
+      message: "Schema 4 requires resource_limits_sha256"
+    });
+  }
+}
+function inspectMeasurementRecord(value, index) {
+  const basePath = index === void 0 ? "$" : `$[${index}]`;
+  const diagnostics = [];
+  if (!isPlainObject3(value)) {
+    diagnostics.push({
+      path: basePath,
+      version: "unknown",
+      code: "INVALID_RECORD_OBJECT",
+      message: "Invalid measurement record: expected object"
+    });
+    return { valid: false, version: "unknown", diagnostics };
+  }
+  const version2 = detectRecordEnvelopeVersion(value);
+  for (const key of Object.keys(value)) {
+    if (!CONTRACT_ALLOWED_KEYS.has(key)) {
+      diagnostics.push({
+        path: `${basePath}.${key}`,
+        version: version2,
+        code: "UNKNOWN_CONTRACT_FIELD",
+        message: `Unexpected field in measurement record: ${key}`
+      });
+    }
+  }
+  const hasLogical = value.schema_version !== void 0 || value.fixture_id !== void 0 || value.logical_id !== void 0;
+  const benchmarksArray = Array.isArray(value.benchmarks) ? value.benchmarks : null;
+  let contractKey;
+  if (!hasLogical) {
+    if (benchmarksArray) {
+      benchmarksArray.forEach((fn, bIdx) => {
+        if (isPlainObject3(fn) && fn.case_id !== void 0) {
+          diagnostics.push({
+            path: `${basePath}.benchmarks[${bIdx}].case_id`,
+            version: "legacy",
+            code: "LEGACY_CASE_ID_FORBIDDEN",
+            message: "Case identity requires fixture and logical contract identities"
+          });
+        }
+      });
+    }
+    if (nonblank(value.contract_id)) {
+      contractKey = JSON.stringify(["legacy", value.contract_id]);
+    }
+  } else {
+    if (value.schema_version !== 2 && value.schema_version !== 3 && value.schema_version !== 4) {
+      diagnostics.push({
+        path: `${basePath}.schema_version`,
+        version: "unknown",
+        code: "UNSUPPORTED_SCHEMA_VERSION",
+        message: "Version 2/3/4 results require fixture_id, logical_id, and case_id for every benchmark"
+      });
+    }
+    if (!nonblank(value.fixture_id)) {
+      diagnostics.push({
+        path: `${basePath}.fixture_id`,
+        version: version2,
+        code: "MISSING_FIXTURE_ID",
+        message: "Version 2/3/4 results require fixture_id, logical_id, and case_id for every benchmark"
+      });
+    }
+    if (!nonblank(value.logical_id)) {
+      diagnostics.push({
+        path: `${basePath}.logical_id`,
+        version: version2,
+        code: "MISSING_LOGICAL_ID",
+        message: "Version 2/3/4 results require fixture_id, logical_id, and case_id for every benchmark"
+      });
+    }
+    if (benchmarksArray) {
+      benchmarksArray.forEach((fn, bIdx) => {
+        if (!isPlainObject3(fn) || !nonblank(fn.case_id)) {
+          diagnostics.push({
+            path: `${basePath}.benchmarks[${bIdx}].case_id`,
+            version: version2,
+            code: "MISSING_CASE_ID",
+            message: "Version 2/3/4 results require fixture_id, logical_id, and case_id for every benchmark"
+          });
+        }
+      });
+    }
+    if ((version2 === 2 || version2 === 3 || version2 === 4) && nonblank(value.fixture_id) && nonblank(value.logical_id)) {
+      contractKey = JSON.stringify([
+        "logical",
+        value.fixture_id,
+        value.logical_id
+      ]);
+    }
+  }
+  if (!nonblank(value.contract_id)) {
+    diagnostics.push({
+      path: `${basePath}.contract_id`,
+      version: version2,
+      code: "INVALID_CONTRACT_ID",
+      message: "Contract contract_id must not be blank"
+    });
+  }
+  if (!nonblank(value.git_commit)) {
+    diagnostics.push({
+      path: `${basePath}.git_commit`,
+      version: version2,
+      code: "INVALID_GIT_COMMIT",
+      message: "Contract git_commit must not be blank"
+    });
+  }
+  if (!nonblank(value.soroban_sdk_version)) {
+    diagnostics.push({
+      path: `${basePath}.soroban_sdk_version`,
+      version: version2,
+      code: "INVALID_SDK_VERSION",
+      message: "Contract soroban_sdk_version must not be blank"
+    });
+  }
+  if (!Number.isSafeInteger(value.timestamp) || value.timestamp < 0) {
+    diagnostics.push({
+      path: `${basePath}.timestamp`,
+      version: version2,
+      code: "INVALID_TIMESTAMP",
+      message: "Contract timestamp must be a non-negative safe integer"
+    });
+  }
+  if (!benchmarksArray) {
+    diagnostics.push({
+      path: `${basePath}.benchmarks`,
+      version: version2,
+      code: "INVALID_BENCHMARKS_ARRAY",
+      message: "Contract benchmarks must be an array"
+    });
+    return { valid: false, version: version2, diagnostics };
+  }
+  const seenBenchmarks = /* @__PURE__ */ new Set();
+  benchmarksArray.forEach((benchmark, bIdx) => {
+    const bPath = `${basePath}.benchmarks[${bIdx}]`;
+    if (!isPlainObject3(benchmark)) {
+      diagnostics.push({
+        path: bPath,
+        version: version2,
+        code: "INVALID_BENCHMARK_OBJECT",
+        message: "Invalid benchmark result: expected object"
+      });
+      return;
+    }
+    for (const key of Object.keys(benchmark)) {
+      if (!BENCHMARK_ALLOWED_KEYS.has(key)) {
+        diagnostics.push({
+          path: `${bPath}.${key}`,
+          version: version2,
+          code: "UNKNOWN_BENCHMARK_FIELD",
+          message: `Unexpected field in benchmark record: ${key}`
+        });
+      }
+    }
+    if (!nonblank(benchmark.function_name)) {
+      diagnostics.push({
+        path: `${bPath}.function_name`,
+        version: version2,
+        code: "INVALID_FUNCTION_NAME",
+        message: "Benchmark function_name must not be blank"
+      });
+    } else {
+      const benchKey = JSON.stringify([
+        benchmark.function_name,
+        benchmark.case_id ?? null
+      ]);
+      if (seenBenchmarks.has(benchKey)) {
+        diagnostics.push({
+          path: bPath,
+          version: version2,
+          code: "DUPLICATE_BENCHMARK_IDENTITY",
+          message: `Duplicate benchmark identity: ${benchKey}`
+        });
+      } else {
+        seenBenchmarks.add(benchKey);
+      }
+    }
+    if (!nonblank(benchmark.wasm_sha256)) {
+      diagnostics.push({
+        path: `${bPath}.wasm_sha256`,
+        version: version2,
+        code: "INVALID_WASM_SHA256",
+        message: "Benchmark wasm_sha256 must not be blank"
+      });
+    }
+    const metricsObj = benchmark.metrics;
+    if (!isPlainObject3(metricsObj)) {
+      diagnostics.push({
+        path: `${bPath}.metrics`,
+        version: version2,
+        code: "INVALID_METRICS_OBJECT",
+        message: "Missing metric cpu_instructions; use an explicit unavailable record"
+      });
+    } else {
+      for (const extraKey of Object.keys(metricsObj)) {
+        if (!METRIC_KEY_SET.has(extraKey)) {
+          diagnostics.push({
+            path: `${bPath}.metrics.${extraKey}`,
+            version: version2,
+            code: "UNKNOWN_METRIC_KEY",
+            message: `Unexpected metric key: ${extraKey}`
+          });
+        }
+      }
+      for (const key of METRIC_KEYS) {
+        const mPath = `${bPath}.metrics.${key}`;
+        const metricVal = metricsObj[key];
+        if (!isPlainObject3(metricVal)) {
+          diagnostics.push({
+            path: mPath,
+            version: version2,
+            code: "MISSING_METRIC",
+            message: `Missing metric ${key}; use an explicit unavailable record`
+          });
+          continue;
+        }
+        for (const fieldKey of Object.keys(metricVal)) {
+          if (!METRIC_VALUE_ALLOWED_KEYS.has(fieldKey)) {
+            diagnostics.push({
+              path: `${mPath}.${fieldKey}`,
+              version: version2,
+              code: "UNKNOWN_METRIC_FIELD",
+              message: `Invalid metric field ${key}.${fieldKey}`
+            });
+          }
+        }
+        if (metricVal.availability !== void 0 && metricVal.availability !== "measured" && metricVal.availability !== "unavailable") {
+          diagnostics.push({
+            path: `${mPath}.availability`,
+            version: version2,
+            code: "INVALID_METRIC_AVAILABILITY",
+            message: `Invalid metric availability ${key}`
+          });
+        }
+        if (metricVal.availability === "unavailable") {
+          if (metricVal.consumed !== null || !nonblank(metricVal.reason)) {
+            diagnostics.push({
+              path: metricVal.consumed !== null ? `${mPath}.consumed` : `${mPath}.reason`,
+              version: version2,
+              code: "INVALID_UNAVAILABLE_METRIC",
+              message: `Invalid unavailable metric ${key}`
+            });
+          }
+        } else if (metricVal.consumed === null || !Number.isSafeInteger(metricVal.consumed) || metricVal.consumed < 0) {
+          diagnostics.push({
+            path: `${mPath}.consumed`,
+            version: version2,
+            code: "INVALID_MEASURED_METRIC",
+            message: `Invalid measured metric ${key}`
+          });
+        }
+        if (metricVal.limit !== null && (!Number.isSafeInteger(metricVal.limit) || metricVal.limit < 0)) {
+          diagnostics.push({
+            path: `${mPath}.limit`,
+            version: version2,
+            code: "INVALID_METRIC_LIMIT",
+            message: `Invalid metric limit ${key}`
+          });
+        }
+      }
+    }
+    if (version2 === 3 || version2 === 4) {
+      if (!benchmark.provenance) {
+        diagnostics.push({
+          path: `${bPath}.provenance`,
+          version: version2,
+          code: "MISSING_PROVENANCE",
+          message: `Schema ${version2} benchmarks require compute provenance`
+        });
+      } else {
+        validateProvenanceObject(
+          benchmark.provenance,
+          version2,
+          `${bPath}.provenance`,
+          diagnostics
+        );
+      }
+      if (isPlainObject3(metricsObj)) {
+        for (const key of METRIC_KEYS) {
+          const mPath = `${bPath}.metrics.${key}`;
+          const metricVal = metricsObj[key];
+          if (!isPlainObject3(metricVal)) continue;
+          if (metricVal.availability === void 0 || metricVal.availability === "measured" && !nonblank(metricVal.source)) {
+            diagnostics.push({
+              path: metricVal.availability === void 0 ? `${mPath}.availability` : `${mPath}.source`,
+              version: version2,
+              code: "MISSING_METRIC_SOURCE_OR_AVAILABILITY",
+              message: `Schema ${version2} requires explicit availability and measured source for ${key}`
+            });
+          }
+          if (version2 === 4 && metricVal.availability === "measured") {
+            if (metricVal.limit === null ? !nonblank(metricVal.limit_reason) : !nonblank(metricVal.limit_source)) {
+              diagnostics.push({
+                path: metricVal.limit === null ? `${mPath}.limit_reason` : `${mPath}.limit_source`,
+                version: version2,
+                code: "MISSING_METRIC_LIMIT_PROVENANCE",
+                message: `Schema 4 requires explicit limit provenance for ${key}`
+              });
+            }
+          }
+        }
+      }
+      if (version2 === 4 && isPlainObject3(benchmark.provenance) && !SHA256_HEX_PATTERN.test(
+        benchmark.provenance.resource_limits_sha256 ?? ""
+      )) {
+        const alreadyReported = diagnostics.some(
+          (d) => d.path === `${bPath}.provenance.resource_limits_sha256`
+        );
+        if (!alreadyReported) {
+          diagnostics.push({
+            path: `${bPath}.provenance.resource_limits_sha256`,
+            version: version2,
+            code: "MISSING_RESOURCE_LIMITS_DIGEST",
+            message: "Schema 4 requires resource_limits_sha256"
+          });
+        }
+      }
+    } else if (benchmark.provenance !== void 0) {
+      validateProvenanceObject(
+        benchmark.provenance,
+        version2,
+        `${bPath}.provenance`,
+        diagnostics
+      );
+    }
+  });
+  if (diagnostics.length > 0) {
+    return { valid: false, version: version2, diagnostics };
+  }
+  return {
+    valid: true,
+    version: version2,
+    contractKey,
+    record: value,
+    diagnostics: []
+  };
+}
+function inspectMeasurementRecords(value) {
+  if (!Array.isArray(value)) {
+    return {
+      valid: false,
+      version: "unknown",
+      diagnostics: [
+        {
+          path: "$",
+          version: "unknown",
+          code: "INVALID_RECORDS_ARRAY",
+          message: "Invalid measurement records: expected array"
+        }
+      ]
+    };
+  }
+  const diagnostics = [];
+  const seenContractKeys = /* @__PURE__ */ new Set();
+  const records = [];
+  let detectedVersion = null;
+  value.forEach((item, index) => {
+    const single = inspectMeasurementRecord(item, index);
+    if (detectedVersion === null) {
+      detectedVersion = single.version;
+    } else if (single.version !== "unknown" && detectedVersion !== "unknown" && single.version !== detectedVersion) {
+      diagnostics.push({
+        path: `$[${index}].schema_version`,
+        version: single.version,
+        code: "MIXED_SCHEMA_VERSIONS",
+        message: "Cannot compare measurements with different schema versions"
+      });
+    }
+    if (single.contractKey !== void 0) {
+      if (seenContractKeys.has(single.contractKey)) {
+        diagnostics.push({
+          path: `$[${index}]`,
+          version: single.version,
+          code: "DUPLICATE_CONTRACT_IDENTITY",
+          message: `Duplicate logical contract identity: ${single.contractKey}`
+        });
+      } else {
+        seenContractKeys.add(single.contractKey);
+      }
+    }
+    if (single.diagnostics.length > 0) {
+      diagnostics.push(...single.diagnostics);
+    } else if (single.record) {
+      records.push(single.record);
+    }
+  });
+  if (diagnostics.length > 0) {
+    return {
+      valid: false,
+      version: detectedVersion,
+      diagnostics
+    };
+  }
+  return {
+    valid: true,
+    version: detectedVersion,
+    records,
+    diagnostics: []
+  };
+}
+function validateMeasurementRecords(value) {
+  const result = inspectMeasurementRecords(value);
+  if (!result.valid || !result.records) {
+    throw new MeasurementRecordValidationError(result.diagnostics);
+  }
+  return result.records;
+}
+function resolveContractIdentityKey(contract, index) {
+  const result = inspectMeasurementRecord(contract, index);
+  if (!result.valid || !result.contractKey) {
+    throw new MeasurementRecordValidationError(result.diagnostics);
+  }
+  return result.contractKey;
+}
+function validateBenchmarkComparisonCompatibility(baseFn, headFn) {
+  if (!baseFn.provenance && !headFn.provenance) {
+    return;
+  }
+  const fields = [
+    "source",
+    "source_version",
+    "protocol",
+    "helper_sha256",
+    "network_id",
+    "compute_config_sha256",
+    "seed",
+    "auth_mode",
+    "host_features"
+  ];
+  for (const field of fields) {
+    if (!baseFn.provenance || !headFn.provenance || JSON.stringify(baseFn.provenance[field]) !== JSON.stringify(headFn.provenance[field])) {
+      throw new Error(`Incompatible measurement environment: ${field}`);
+    }
+  }
+  if (JSON.stringify(baseFn.provenance?.resource_limits_sha256) !== JSON.stringify(headFn.provenance?.resource_limits_sha256)) {
+    throw new Error(
+      "Incompatible measurement environment: resource_limits_sha256"
+    );
+  }
+  if (headFn.provenance?.resource_limits_sha256) {
+    for (const metric of METRIC_KEYS) {
+      for (const field of [
+        "availability",
+        "source",
+        "limit",
+        "limit_source",
+        "limit_reason"
+      ]) {
+        if (baseFn.metrics[metric][field] !== headFn.metrics[metric][field]) {
+          throw new Error(`Incompatible metric semantics: ${metric}.${field}`);
+        }
+      }
+    }
+  }
+}
+
+// src/diff.ts
 function diffMetrics(base, head) {
   return METRIC_KEYS.map((key) => {
-    const b = base?.[key];
-    const h = head?.[key];
-    for (const value of [b, h]) {
-      if (!value)
-        throw new Error(
-          `Missing metric ${key}; use an explicit unavailable record`
-        );
-      if (value.availability !== void 0 && !["measured", "unavailable"].includes(value.availability))
-        throw new Error(`Invalid metric availability ${key}`);
-      if (value.availability === "unavailable") {
-        if (value.consumed !== null || !value.reason?.trim())
-          throw new Error(`Invalid unavailable metric ${key}`);
-      } else if (value.consumed === null || !Number.isSafeInteger(value.consumed) || value.consumed < 0) {
-        throw new Error(`Invalid measured metric ${key}`);
-      }
-      if (value.limit !== null && (!Number.isSafeInteger(value.limit) || value.limit < 0))
-        throw new Error(`Invalid metric limit ${key}`);
-    }
+    const b = base[key];
+    const h = head[key];
     if (b.consumed === null || h.consumed === null) {
       return {
         key,
@@ -35251,46 +35853,7 @@ function diffFunctions(baseFns, headFns) {
   for (const [key, headFn] of headMap) {
     const baseFn = baseMap.get(key);
     if (!baseFn) continue;
-    if (baseFn.provenance || headFn.provenance) {
-      const fields = [
-        "source",
-        "source_version",
-        "protocol",
-        "helper_sha256",
-        "network_id",
-        "compute_config_sha256",
-        "seed",
-        "auth_mode",
-        "host_features"
-      ];
-      for (const field of fields) {
-        if (!baseFn.provenance || !headFn.provenance || JSON.stringify(baseFn.provenance[field]) !== JSON.stringify(headFn.provenance[field])) {
-          throw new Error(`Incompatible measurement environment: ${field}`);
-        }
-      }
-      if (JSON.stringify(baseFn.provenance?.resource_limits_sha256) !== JSON.stringify(headFn.provenance?.resource_limits_sha256)) {
-        throw new Error(
-          "Incompatible measurement environment: resource_limits_sha256"
-        );
-      }
-      if (headFn.provenance?.resource_limits_sha256) {
-        for (const metric of METRIC_KEYS) {
-          for (const field of [
-            "availability",
-            "source",
-            "limit",
-            "limit_source",
-            "limit_reason"
-          ]) {
-            if (baseFn.metrics[metric][field] !== headFn.metrics[metric][field]) {
-              throw new Error(
-                `Incompatible metric semantics: ${metric}.${field}`
-              );
-            }
-          }
-        }
-      }
-    }
+    validateBenchmarkComparisonCompatibility(baseFn, headFn);
     const metrics = diffMetrics(baseFn.metrics, headFn.metrics);
     const hasRegression = metrics.some((m) => m.regression);
     functions.push({
@@ -35318,98 +35881,18 @@ function benchmarkIdentity(fn) {
 function benchmarkMap(functions) {
   const result = /* @__PURE__ */ new Map();
   for (const fn of functions) {
-    if (!nonblank(fn.function_name))
-      throw new Error("Benchmark function_name must not be blank");
     const key = JSON.stringify([fn.function_name, fn.case_id ?? null]);
-    if (result.has(key))
-      throw new Error(`Duplicate benchmark identity: ${key}`);
     result.set(key, fn);
   }
   return result;
 }
-function contractKey(contract) {
-  const logical = contract.schema_version !== void 0 || contract.fixture_id !== void 0 || contract.logical_id !== void 0;
-  if (!logical) {
-    if (contract.benchmarks.some((fn) => fn.case_id !== void 0)) {
-      throw new Error(
-        "Case identity requires fixture and logical contract identities"
-      );
-    }
-    return JSON.stringify(["legacy", contract.contract_id]);
-  }
-  if (![2, 3, 4].includes(contract.schema_version) || !nonblank(contract.fixture_id) || !nonblank(contract.logical_id) || contract.benchmarks.some((fn) => !nonblank(fn.case_id))) {
-    throw new Error(
-      "Version 2/3/4 results require fixture_id, logical_id, and case_id for every benchmark"
-    );
-  }
-  return JSON.stringify(["logical", contract.fixture_id, contract.logical_id]);
-}
-function nonblank(value) {
-  return typeof value === "string" && value.trim().length > 0;
-}
 function contractMap(contracts) {
+  const validated = validateMeasurementRecords(contracts);
   const result = /* @__PURE__ */ new Map();
-  for (const contract of contracts) {
-    const key = contractKey(contract);
-    if (result.has(key))
-      throw new Error(`Duplicate logical contract identity: ${key}`);
-    benchmarkMap(contract.benchmarks);
-    for (const benchmark of contract.benchmarks) {
-      diffMetrics(benchmark.metrics, benchmark.metrics);
-      if (contract.schema_version === 3 || contract.schema_version === 4) {
-        if (!benchmark.provenance)
-          throw new Error(
-            `Schema ${contract.schema_version} benchmarks require compute provenance`
-          );
-        for (const field of [
-          "source",
-          "source_version",
-          "helper_sha256",
-          "network_id",
-          "compute_config_sha256",
-          "header_sha256",
-          "snapshot_sha256",
-          "config_sha256",
-          "input_sha256",
-          "auth_mode"
-        ]) {
-          if (!nonblank(benchmark.provenance[field]))
-            throw new Error(`Invalid compute provenance: ${field}`);
-        }
-        if (!Number.isSafeInteger(benchmark.provenance.ledger) || benchmark.provenance.ledger < 0 || !Number.isSafeInteger(benchmark.provenance.protocol) || !Array.isArray(benchmark.provenance.host_features) || !benchmark.provenance.host_features.every(nonblank)) {
-          throw new Error(
-            "Invalid compute provenance: ledger/protocol/host_features"
-          );
-        }
-        if (!Array.isArray(benchmark.provenance.seed) || benchmark.provenance.seed.length !== 32 || !benchmark.provenance.seed.every(
-          (value) => Number.isInteger(value) && value >= 0 && value <= 255
-        )) {
-          throw new Error("Invalid compute provenance: seed");
-        }
-        for (const key2 of METRIC_KEYS) {
-          const value = benchmark.metrics[key2];
-          if (value.availability === void 0 || value.availability === "measured" && !nonblank(value.source)) {
-            throw new Error(
-              `Schema ${contract.schema_version} requires explicit availability and measured source for ${key2}`
-            );
-          }
-          if (contract.schema_version === 4 && value.availability === "measured") {
-            if (value.limit === null ? !nonblank(value.limit_reason) : !nonblank(value.limit_source)) {
-              throw new Error(
-                `Schema 4 requires explicit limit provenance for ${key2}`
-              );
-            }
-          }
-        }
-        if (contract.schema_version === 4 && !/^[a-f0-9]{64}$/.test(
-          benchmark.provenance.resource_limits_sha256 ?? ""
-        )) {
-          throw new Error("Schema 4 requires resource_limits_sha256");
-        }
-      }
-    }
+  validated.forEach((contract, index) => {
+    const key = resolveContractIdentityKey(contract, index);
     result.set(key, contract);
-  }
+  });
   return result;
 }
 function contractLabel(contract) {
@@ -35418,6 +35901,11 @@ function contractLabel(contract) {
 function diffBenchmarks(base, head) {
   const baseMap = contractMap(base);
   const headMap = contractMap(head);
+  if (base.length > 0 && head.length > 0 && base[0].schema_version !== void 0 && head[0].schema_version !== void 0 && base[0].schema_version !== head[0].schema_version) {
+    throw new Error(
+      "Cannot compare measurements with different schema versions"
+    );
+  }
   const newContracts = [];
   const removedContracts = [];
   const contracts = [];
@@ -35434,11 +35922,6 @@ function diffBenchmarks(base, head) {
       throw new Error(
         "Cannot compare measurements with different schema versions"
       );
-    if (headContract.schema_version === 3 && [...baseContract.benchmarks, ...headContract.benchmarks].some(
-      (fn) => !fn.provenance
-    )) {
-      throw new Error("Schema 3 benchmarks require compute provenance");
-    }
     const benchmarkDiff = diffFunctions(
       baseContract.benchmarks,
       headContract.benchmarks
@@ -51562,7 +52045,7 @@ var RpcServer = class {
       default:
         throw new TypeError(`invalid durability: ${durability}`);
     }
-    const contractKey2 = types.LedgerKey.contractData(
+    const contractKey = types.LedgerKey.contractData(
       new types.LedgerKeyContractData({
         key,
         contract: scAddress,
@@ -51570,7 +52053,7 @@ var RpcServer = class {
       })
     );
     try {
-      return await this.getLedgerEntry(contractKey2);
+      return await this.getLedgerEntry(contractKey);
     } catch {
       throw {
         code: 404,
@@ -52486,6 +52969,51 @@ var RpcServer = class {
 // src/endpoint.ts
 var REDACTED_VALUE = "REDACTED";
 var INVALID_ENDPOINT = "[invalid endpoint]";
+function isRecord(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function parseJsonRpcResponse(rawBody, expectedId) {
+  let value;
+  try {
+    value = JSON.parse(rawBody);
+  } catch {
+    throw new Error("Malformed JSON-RPC response: invalid JSON");
+  }
+  if (!isRecord(value)) {
+    throw new Error("Malformed JSON-RPC response: expected an object");
+  }
+  if (value.jsonrpc !== "2.0") {
+    throw new Error("Malformed JSON-RPC response: unsupported jsonrpc version");
+  }
+  if (!Object.hasOwn(value, "id") || value.id !== expectedId) {
+    throw new Error(
+      "Malformed JSON-RPC response: response ID does not match request"
+    );
+  }
+  const hasResult = Object.hasOwn(value, "result");
+  const hasError = Object.hasOwn(value, "error");
+  if (hasResult === hasError) {
+    throw new Error(
+      "Malformed JSON-RPC response: expected exactly one of result or error"
+    );
+  }
+  const allowedKeys = /* @__PURE__ */ new Set([
+    "jsonrpc",
+    "id",
+    hasResult ? "result" : "error"
+  ]);
+  if (Object.keys(value).some((key) => !allowedKeys.has(key))) {
+    throw new Error("Malformed JSON-RPC response: unexpected envelope field");
+  }
+  if (hasResult) {
+    return value;
+  }
+  const error2 = value.error;
+  if (!isRecord(error2) || !Number.isInteger(error2.code) || typeof error2.message !== "string" || Object.keys(error2).some((key) => !["code", "message", "data"].includes(key))) {
+    throw new Error("Malformed JSON-RPC response: invalid error object");
+  }
+  return value;
+}
 function sanitizeEndpoint(rawUrl) {
   let url;
   try {
@@ -52560,6 +53088,7 @@ async function ensureAccountReady(rpcUrl, publicKey, signal) {
   ).toXDR("base64");
   const deadline = Date.now() + DEADLINE_MS;
   let funded = false, lastError = "account has not appeared in RPC";
+  let requestId = 0;
   async function request3(url, options = {}) {
     try {
       if (signal?.aborted)
@@ -52599,23 +53128,32 @@ async function ensureAccountReady(rpcUrl, publicKey, signal) {
     if (signal?.aborted)
       throw signal.reason || new Error("Account readiness cancelled");
     try {
+      const id = ++requestId;
       const response = await request3(rpcUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           jsonrpc: "2.0",
-          id: 1,
+          id,
           method: "getLedgerEntries",
           params: { keys: [key] }
         })
       });
-      const json = JSON.parse(response);
-      if (json.error)
+      let json;
+      try {
+        json = parseJsonRpcResponse(response, id);
+      } catch (error2) {
         throw new Error(
-          `Account readiness RPC error at ${sanitizeEndpoint(rpcUrl)}: ${redactEndpointSecrets(JSON.stringify(json.error), rpcUrl)}`
+          `Account readiness invalid RPC response at ${sanitizeEndpoint(rpcUrl)}: ${redactEndpointSecrets(String(error2?.message ?? error2), rpcUrl)}`
         );
-      const entries = json.result?.entries;
-      if (!Number.isInteger(json.result?.latestLedger) || json.result.latestLedger <= 0 || !Array.isArray(entries) || entries.length > 1)
+      }
+      if ("error" in json)
+        throw new Error(
+          `Account readiness RPC method error at ${sanitizeEndpoint(rpcUrl)}: ${redactEndpointSecrets(JSON.stringify(json.error), rpcUrl)}`
+        );
+      const result = json.result;
+      const entries = result?.entries;
+      if (!Number.isInteger(result?.latestLedger) || result.latestLedger <= 0 || !Array.isArray(entries) || entries.length > 1)
         throw new Error("Invalid account readiness RPC response");
       if (entries.length === 1) {
         const entry = entries[0];
@@ -52700,6 +53238,51 @@ var outputSchema = external_exports.object({
   contract_events_xdr: external_exports.array(encoded),
   modified_entries: integer
 }).strict();
+function sameXdr(left, right) {
+  const bytes = (value) => typeof value === "string" ? Buffer.from(value) : Buffer.isBuffer(value) ? value : value.toXDR("raw");
+  return bytes(left).equals(bytes(right));
+}
+function validateLedgerKeyEntryCorrespondence(keyXdr, dataXdr) {
+  const key = types.LedgerKey.fromXDR(keyXdr, "base64");
+  const data = types.LedgerEntryData.fromXDR(dataXdr, "base64");
+  const keyName = key.switch().name;
+  const dataName = data.switch().name;
+  if (keyName === "account") {
+    if (dataName !== "account" || !sameXdr(key.account().accountId(), data.account().accountId()))
+      throw new Error("Ledger entry/key mismatch: account identity");
+  } else if (keyName === "trustline") {
+    if (dataName !== "trustline" || !sameXdr(key.trustLine().accountId(), data.trustLine().accountId()) || !sameXdr(key.trustLine().asset(), data.trustLine().asset()))
+      throw new Error("Ledger entry/key mismatch: trustline identity");
+  } else if (keyName === "offer") {
+    if (dataName !== "offer" || !sameXdr(key.offer().sellerId(), data.offer().sellerId()) || !sameXdr(key.offer().offerId(), data.offer().offerId()))
+      throw new Error("Ledger entry/key mismatch: offer identity");
+  } else if (keyName === "data") {
+    if (dataName !== "data" || !sameXdr(key.data().accountId(), data.data().accountId()) || !sameXdr(key.data().dataName(), data.data().dataName()))
+      throw new Error("Ledger entry/key mismatch: data identity");
+  } else if (keyName === "claimableBalance") {
+    if (dataName !== "claimableBalance" || !sameXdr(
+      key.claimableBalance().balanceId(),
+      data.claimableBalance().balanceId()
+    ))
+      throw new Error("Ledger entry/key mismatch: claimable-balance identity");
+  } else if (keyName === "contractData") {
+    if (dataName !== "contractData" || !sameXdr(key.contractData().contract(), data.contractData().contract()) || !sameXdr(key.contractData().key(), data.contractData().key()) || key.contractData().durability().name !== data.contractData().durability().name)
+      throw new Error("Ledger entry/key mismatch: contract-data identity");
+  } else if (keyName === "contractCode") {
+    if (dataName !== "contractCode" || !sameXdr(key.contractCode().hash(), data.contractCode().hash()))
+      throw new Error("Ledger entry/key mismatch: contract-code hash");
+  } else if (keyName === "configSetting") {
+    if (dataName !== "configSetting" || key.configSetting().configSettingId().name !== data.configSetting().switch().name)
+      throw new Error("Ledger entry/key mismatch: config-setting identity");
+  } else if (keyName === "ttl") {
+    if (dataName !== "ttl" || !sameXdr(key.ttl().keyHash(), data.ttl().keyHash()))
+      throw new Error("Ledger entry/key mismatch: TTL identity");
+  } else {
+    throw new Error(
+      `Unsupported LedgerKey variant for correspondence validation: ${keyName}`
+    );
+  }
+}
 function execute(file, args, input, cwd, signal) {
   return new Promise((resolve6, reject) => {
     if (signal?.aborted) {
@@ -52727,9 +53310,12 @@ function execute(file, args, input, cwd, signal) {
               signal?.reason || new Error("Simulation helper execution cancelled")
             );
           } else {
-            reject(
-              new Error(`Simulation helper failed: ${stderr || error2.message}`)
+            const failure = new Error(
+              `Simulation helper failed: ${stderr || error2.message}`
             );
+            failure.stdout = stdout;
+            failure.exitCode = typeof error2.code === "number" ? error2.code : void 0;
+            reject(failure);
           }
         } else resolve6(stdout);
       }
@@ -52738,6 +53324,31 @@ function execute(file, args, input, cwd, signal) {
     });
     child.stdin?.end(input ?? "");
   });
+}
+function parseHelperFailure(error2) {
+  const stdout = error2?.stdout;
+  if (typeof stdout !== "string" || !stdout.trim()) return null;
+  try {
+    const parsed = JSON.parse(stdout);
+    if (parsed.protocol_version !== 1 || typeof parsed.status !== "string" || typeof parsed.message !== "string") {
+      throw new Error("invalid protocol envelope");
+    }
+    if (![
+      "uncaptured",
+      "unsupported",
+      "invalid_input",
+      "incomplete",
+      "host_failure"
+    ].includes(parsed.status))
+      throw new Error("unknown protocol status");
+    if (parsed.status === "uncaptured" && (!Array.isArray(parsed.keys) || parsed.keys.length === 0))
+      throw new Error("uncaptured envelope has no keys");
+    return parsed;
+  } catch (parseError) {
+    throw new Error(
+      `Invalid native helper failure protocol: ${parseError instanceof Error ? parseError.message : parseError}`
+    );
+  }
 }
 var provisioned;
 async function resolveSimulationHelper(explicitPath, customBuild) {
@@ -52797,6 +53408,25 @@ async function resolveSimulationHelper(explicitPath, customBuild) {
     provisioned = attempt;
   }
   return provisioned;
+}
+function captureHelperIdentity(helperPath) {
+  try {
+    const stats = fs.statSync(helperPath);
+    if (!stats.isFile()) {
+      throw new Error(
+        `Simulation helper at ${helperPath} is not a regular file`
+      );
+    }
+    const bytes = fs.readFileSync(helperPath);
+    return sha2562(bytes);
+  } catch (err) {
+    if (err instanceof Error && err.message.startsWith("Simulation helper at")) {
+      throw err;
+    }
+    throw new Error(
+      `Failed to capture simulation helper identity for ${helperPath}: ${err instanceof Error ? err.message : String(err)}`
+    );
+  }
 }
 async function simulateSnapshot(input, helperPath, signal) {
   const stdout = await execute(
@@ -52859,13 +53489,17 @@ var computeConfigNames = /* @__PURE__ */ new Set([
   "configSettingContractCostParamsMemoryBytes",
   "configSettingStateArchival"
 ]);
-var configKeys = configNames.map(
-  (name) => types.LedgerKey.configSetting(
-    new types.LedgerKeyConfigSetting({
-      configSettingId: types.ConfigSettingId[name]()
-    })
-  ).toXDR("base64")
+var configNameToKey = new Map(
+  configNames.map((name) => [
+    name,
+    types.LedgerKey.configSetting(
+      new types.LedgerKeyConfigSetting({
+        configSettingId: types.ConfigSettingId[name]()
+      })
+    ).toXDR("base64")
+  ])
 );
+var configKeys = Array.from(configNameToKey.values());
 var entriesSchema = external_exports.object({
   latestLedger: integer.positive(),
   entries: external_exports.array(
@@ -52927,6 +53561,7 @@ var RpcError = class extends Error {
     this.rpcError = rpcError;
   }
 };
+var nextRpcRequestId = 0;
 function isTransientLedgerRead(failure) {
   if (!(failure instanceof RpcError) || failure.method !== "getLedgerEntries")
     return false;
@@ -52940,11 +53575,17 @@ async function callRpc(rpcUrl, method, params, signal) {
   let response;
   const timeoutSignal = AbortSignal.timeout(3e4);
   const combinedSignal = signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal;
+  const requestId = ++nextRpcRequestId;
   try {
     response = await fetch(rpcUrl, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: requestId,
+        method,
+        params
+      }),
       signal: combinedSignal
     });
   } catch (error2) {
@@ -52959,10 +53600,29 @@ async function callRpc(rpcUrl, method, params, signal) {
     throw new Error(
       `RPC ${method}: HTTP ${response.status} at ${sanitizeEndpoint(rpcUrl)}`
     );
-  const body = await response.json();
-  if (body.error || body.result === void 0)
-    throw new RpcError(method, body.error, rpcUrl);
-  return body.result;
+  let responseBody;
+  try {
+    responseBody = await response.text();
+  } catch (error2) {
+    if (signal?.aborted) {
+      throw signal.reason || new Error(`RPC ${method} cancelled`);
+    }
+    throw new Error(
+      `RPC ${method} response transport failure at ${sanitizeEndpoint(rpcUrl)}: ${redactEndpointSecrets(String(error2?.message ?? error2), rpcUrl)}`
+    );
+  }
+  let envelope;
+  try {
+    envelope = parseJsonRpcResponse(responseBody, requestId);
+  } catch (error2) {
+    throw new Error(
+      `RPC ${method} invalid response at ${sanitizeEndpoint(rpcUrl)}: ${redactEndpointSecrets(String(error2?.message ?? error2), rpcUrl)}`
+    );
+  }
+  if ("error" in envelope) {
+    throw new RpcError(method, envelope.error, rpcUrl);
+  }
+  return envelope.result;
 }
 async function measureInvocation(rpcUrl, transaction, helperPath, options) {
   const signal = options?.signal;
@@ -52974,6 +53634,11 @@ async function measureInvocation(rpcUrl, transaction, helperPath, options) {
     throw new Error(
       `Unsupported protocol ${network.protocolVersion}: simulation helper supports 28`
     );
+  if (transaction.networkPassphrase !== network.passphrase) {
+    throw new Error(
+      `Transaction network passphrase "${transaction.networkPassphrase}" does not match RPC network passphrase "${network.passphrase}"`
+    );
+  }
   const keys = new Set(configKeys);
   let transientReadFailures = 0;
   let lastCause = "none";
@@ -52984,6 +53649,7 @@ async function measureInvocation(rpcUrl, transaction, helperPath, options) {
     transient_read: 0
   };
   let discoveredKeysCount = 0;
+  let initialHelperSha256 = null;
   for (let attempt = 0; attempt < 30; attempt++) {
     if (signal?.aborted) {
       throw signal.reason || new Error("Measurement cancelled");
@@ -53091,19 +53757,44 @@ async function measureInvocation(rpcUrl, transaction, helperPath, options) {
         signal
       )
     );
-    const row = headers.ledgers.find(
+    const matchingRows = headers.ledgers.filter(
       (item) => item.sequence === simulation.latestLedger
     );
-    if (!row) throw new Error("Snapshot ledger header unavailable");
-    const header = types.LedgerHeaderHistoryEntry.fromXDR(
-      row.headerXdr,
-      "base64"
-    ).header();
+    if (matchingRows.length === 0) {
+      throw new Error("Snapshot ledger header unavailable");
+    }
+    if (matchingRows.length > 1) {
+      throw new Error(
+        `Ambiguous duplicate ledger headers returned for sequence ${simulation.latestLedger}`
+      );
+    }
+    const row = matchingRows[0];
+    let historyEntry;
+    try {
+      historyEntry = types.LedgerHeaderHistoryEntry.fromXDR(
+        row.headerXdr,
+        "base64"
+      );
+    } catch {
+      throw new Error("Malformed ledger header history entry XDR");
+    }
+    const header = historyEntry.header();
     if (header.ledgerSeq() !== simulation.latestLedger || header.ledgerVersion() !== network.protocolVersion) {
       throw new Error("Snapshot header ledger/protocol mismatch");
     }
+    const missingConfigs = configNames.filter((name) => {
+      const key = configNameToKey.get(name);
+      const row2 = rows.get(key);
+      return !row2 || !row2.xdr;
+    });
+    if (missingConfigs.length > 0) {
+      throw new Error(
+        `Missing required configuration entries: [${missingConfigs.join(", ")}]`
+      );
+    }
     const entries = requested.map((key) => {
       const entry = rows.get(key);
+      if (entry?.xdr) validateLedgerKeyEntryCorrespondence(key, entry.xdr);
       return entry ? {
         key,
         xdr: entry.xdr,
@@ -53125,10 +53816,48 @@ async function measureInvocation(rpcUrl, transaction, helperPath, options) {
       instruction_leeway: 0,
       seed: Array(32).fill(0)
     };
+    const preHelperSha256 = captureHelperIdentity(helperPath);
+    if (initialHelperSha256 === null) {
+      initialHelperSha256 = preHelperSha256;
+    } else if (preHelperSha256 !== initialHelperSha256) {
+      throw new Error(
+        `Simulation helper executable was modified across attempts (expected: ${initialHelperSha256}, current: ${preHelperSha256})`
+      );
+    }
     let output;
     try {
       output = await simulateSnapshot(input, helperPath, signal);
     } catch (failure) {
+      const postFailureSha256 = captureHelperIdentity(helperPath);
+      if (postFailureSha256 !== initialHelperSha256) {
+        throw new Error(
+          `Simulation helper executable was modified during execution (expected: ${initialHelperSha256}, current: ${postFailureSha256})`
+        );
+      }
+      const envelope = parseHelperFailure(failure);
+      if (envelope) {
+        if (envelope.status !== "uncaptured")
+          throw new Error(
+            `Native helper ${envelope.status}: ${envelope.message}`
+          );
+        const additional2 = (envelope.keys ?? []).filter(
+          (key) => !keys.has(key)
+        );
+        if (!additional2.length)
+          throw new Error("Native helper reported no new captured keys");
+        for (const key of additional2) {
+          try {
+            types.LedgerKey.fromXDR(key, "base64");
+          } catch {
+            throw new Error("Native helper reported malformed LedgerKey");
+          }
+          keys.add(key);
+        }
+        lastCause = "newly_discovered_keys";
+        causes.newly_discovered_keys++;
+        discoveredKeysCount += additional2.length;
+        continue;
+      }
       const message = failure instanceof Error ? failure.message : String(failure);
       const missing = [
         ...message.matchAll(/UNCAPTURED_KEY:([A-Za-z0-9+/=]+)/g)
@@ -53143,6 +53872,12 @@ async function measureInvocation(rpcUrl, transaction, helperPath, options) {
         keys.add(key);
       }
       continue;
+    }
+    const postHelperSha256 = captureHelperIdentity(helperPath);
+    if (postHelperSha256 !== initialHelperSha256) {
+      throw new Error(
+        `Simulation helper executable was modified during execution (expected: ${initialHelperSha256}, current: ${postHelperSha256})`
+      );
     }
     const rpcEvents = simulation.events.map((event) => types.DiagnosticEvent.fromXDR(event, "base64")).filter(
       (event) => event.inSuccessfulContractCall() && event.event().type().name !== "diagnostic"
@@ -53183,6 +53918,12 @@ async function measureInvocation(rpcUrl, transaction, helperPath, options) {
         "Native compute limits disagree with captured configuration"
       );
     }
+    const finalHelperSha256 = captureHelperIdentity(helperPath);
+    if (finalHelperSha256 !== initialHelperSha256) {
+      throw new Error(
+        `Simulation helper executable was modified before emitting provenance (expected: ${initialHelperSha256}, current: ${finalHelperSha256})`
+      );
+    }
     return {
       output,
       limits,
@@ -53190,7 +53931,7 @@ async function measureInvocation(rpcUrl, transaction, helperPath, options) {
         source: output.source,
         source_version: output.source_version,
         protocol: output.protocol,
-        helper_sha256: sha2562(fs.readFileSync(helperPath)),
+        helper_sha256: initialHelperSha256,
         network_id: sha2562(network.passphrase),
         ledger: simulation.latestLedger,
         header_sha256: sha2562(input.header_xdr),
@@ -53703,8 +54444,8 @@ Build the contract before running measurements.`
 }
 
 // src/threshold.ts
-var fs3 = __toESM(require("fs"));
 var TOML = __toESM(require_toml());
+var crypto4 = __toESM(require("crypto"));
 var percentage = external_exports.number().finite().nonnegative();
 var ruleSchema = external_exports.union([
   percentage,
@@ -53736,18 +54477,17 @@ function validateConfig(value) {
     throw new Error(formatZodError(parsed.error, "weighin.toml"));
   return parsed.data;
 }
-function loadConfig(configPath) {
-  if (!fs3.existsSync(configPath)) {
-    return null;
-  }
-  const raw = fs3.readFileSync(configPath, "utf8");
+function loadConfigContent(content, sourcePath) {
   try {
-    return validateConfig(TOML.parse(raw));
+    return validateConfig(TOML.parse(content));
   } catch (error2) {
     if (error2 instanceof Error && error2.message.startsWith("Invalid WeighIn configuration"))
       throw error2;
-    throw new Error(`Failed to parse TOML in ${configPath}: ${error2.message}`);
+    throw new Error(`Failed to parse TOML in ${sourcePath}: ${error2.message}`);
   }
+}
+function policyContentSha256(content) {
+  return crypto4.createHash("sha256").update(content, "utf8").digest("hex");
 }
 function parseAllowPct(rule) {
   const m = rule.match(/^allow_(\d+(?:\.\d+)?)_percent_increase$/);
@@ -53983,16 +54723,28 @@ function renderFunctionTable(fn) {
     const limit = m.head.limit === null && m.head.limit_reason ? "No independent limit" : fmt(m.head.limit);
     return `| ${t} | ${label} | ${base} | ${head} | ${delta} | ${pct} | ${limit} |`;
   });
+  const provenanceDetails = [];
+  if (fn.head_provenance) {
+    provenanceDetails.push(
+      `Snapshot ledgers: BASE ${fn.base_provenance?.ledger ?? "Unavailable"} \u2192 HEAD ${fn.head_provenance.ledger}.`,
+      `Compute config SHA256: BASE \`${fn.base_provenance?.compute_config_sha256 ?? "Unavailable"}\` \u2192 HEAD \`${fn.head_provenance.compute_config_sha256}\`.`,
+      `Full config SHA256: BASE \`${fn.base_provenance?.config_sha256 ?? "Unavailable"}\` \u2192 HEAD \`${fn.head_provenance.config_sha256}\`.`,
+      `Resource limits SHA256: BASE \`${fn.base_provenance?.resource_limits_sha256 ?? "Unavailable"}\` \u2192 HEAD \`${fn.head_provenance.resource_limits_sha256 ?? "Unavailable"}\`.`,
+      `Helper SHA256: BASE \`${fn.base_provenance?.helper_sha256 ?? "Unavailable"}\` \u2192 HEAD \`${fn.head_provenance.helper_sha256}\`.`
+    );
+  }
+  provenanceDetails.push(
+    ...fn.metrics.filter(
+      (m) => m.head.source || m.head.limit_source || m.head.limit_reason
+    ).map(
+      (m) => `- **${METRIC_LABELS[m.key]}** source: ${m.head.source ? `\`${m.head.source}\`` : "Unavailable"}; limit: ${m.head.limit_source ? `\`${m.head.limit_source}\`` : m.head.limit_reason ?? "Unavailable"}.`
+    )
+  );
   return [
     `#### \`${benchmarkLabel(fn)}\``,
     "",
     ...fn.head_provenance ? [
       `Compute source: ${fn.head_provenance.source} ${fn.head_provenance.source_version}; protocol ${fn.head_provenance.protocol}.`,
-      `Snapshot ledgers: BASE ${fn.base_provenance?.ledger} \u2192 HEAD ${fn.head_provenance.ledger}; compute config SHA256: \`${fn.head_provenance.compute_config_sha256}\`.`,
-      `Full config SHA256: BASE \`${fn.base_provenance?.config_sha256}\` \u2192 HEAD \`${fn.head_provenance.config_sha256}\`.`,
-      ...fn.head_provenance.resource_limits_sha256 ? [
-        `Resource limits SHA256: \`${fn.head_provenance.resource_limits_sha256}\`.`
-      ] : [],
       ""
     ] : [],
     "| | Metric | Base | Head | Delta | Change | Limit |",
@@ -54000,9 +54752,14 @@ function renderFunctionTable(fn) {
     ...rows,
     "",
     ...fn.metrics.filter((m) => m.availability === "unavailable").map((m) => `- **${metricLabel(m)} unavailable**: ${m.reason}`),
-    ...fn.metrics.filter((m) => m.head.limit_source || m.head.limit_reason).map(
-      (m) => `- **${METRIC_LABELS[m.key]}** source: \`${m.head.source}\`; limit: ${m.head.limit_source ? `\`${m.head.limit_source}\`` : m.head.limit_reason}.`
-    )
+    ...provenanceDetails.length > 0 ? [
+      "",
+      "<details><summary>Snapshot and metric provenance</summary>",
+      "",
+      ...provenanceDetails,
+      "",
+      "</details>"
+    ] : []
   ].join("\n");
 }
 function compareCodePoints(a, b) {
@@ -54024,13 +54781,19 @@ function compareFunctions(a, b) {
 function compareViolations(a, b) {
   return compareCodePoints(a.fixture_id, b.fixture_id) || compareCodePoints(a.logical_id, b.logical_id) || compareCodePoints(a.contract_id, b.contract_id) || compareCodePoints(a.function_name, b.function_name) || compareCodePoints(a.case_id, b.case_id) || compareCodePoints(a.metric, b.metric);
 }
-function renderComment(diff, violations, baseRef, headSha) {
+function renderComment(diff, violations, baseRef, headSha, policyOrigin) {
   const lines = [];
   const sortedViolations = [...violations].sort(compareViolations);
   const statusEmoji = sortedViolations.length > 0 ? "\u{1F534}" : "\u{1F7E2}";
   const statusText = sortedViolations.length > 0 ? `**${sortedViolations.length} threshold violation${sortedViolations.length > 1 ? "s" : ""}**` : "**All thresholds passed**";
   lines.push(`## ${statusEmoji} WeighIn Benchmark Report`);
   lines.push("");
+  if (policyOrigin) {
+    lines.push(
+      `Policy source: **${policyOrigin.mode}** \`${policyOrigin.path}\` at \`${policyOrigin.revision}\`; content SHA256 \`${policyOrigin.content_sha256}\`.`
+    );
+    lines.push("");
+  }
   lines.push(
     `${statusText} \u2014 comparing \`${baseRef}\` \u2192 \`${headSha.slice(0, 8)}\``
   );
@@ -54124,7 +54887,7 @@ var core = __toESM(require_core());
 var exec3 = __toESM(require_exec());
 
 // src/build.ts
-var fs4 = __toESM(require("fs"));
+var fs3 = __toESM(require("fs"));
 var path4 = __toESM(require("path"));
 var os = __toESM(require("os"));
 var import_crypto = require("crypto");
@@ -54134,12 +54897,12 @@ function verifyBuildStorage(directory, bytes = 1024 * 1024) {
   const expected = Buffer.alloc(bytes, 165);
   let descriptor;
   try {
-    descriptor = fs4.openSync(probePath, "wx", 384);
-    fs4.writeFileSync(descriptor, expected);
-    fs4.fsyncSync(descriptor);
-    fs4.closeSync(descriptor);
+    descriptor = fs3.openSync(probePath, "wx", 384);
+    fs3.writeFileSync(descriptor, expected);
+    fs3.fsyncSync(descriptor);
+    fs3.closeSync(descriptor);
     descriptor = void 0;
-    if (!fs4.readFileSync(probePath).equals(expected))
+    if (!fs3.readFileSync(probePath).equals(expected))
       throw new Error(
         "temporary-file contents did not survive a write/read round trip"
       );
@@ -54148,13 +54911,13 @@ function verifyBuildStorage(directory, bytes = 1024 * 1024) {
       `Build temporary storage is unusable at ${directory}: ${error2.message}. Provide healthy temporary storage (TMPDIR on Unix); refusing to accept optimizer output.`
     );
   } finally {
-    if (descriptor !== void 0) fs4.closeSync(descriptor);
-    fs4.rmSync(probePath, { force: true });
+    if (descriptor !== void 0) fs3.closeSync(descriptor);
+    fs3.rmSync(probePath, { force: true });
   }
 }
 async function buildContracts(fixturesPath, rustToolchain) {
   const fixtures = parseFixtures(
-    fs4.readFileSync(fixturesPath, "utf8"),
+    fs3.readFileSync(fixturesPath, "utf8"),
     path4.basename(fixturesPath)
   );
   const fixturesDir = path4.dirname(path4.resolve(fixturesPath));
@@ -54210,7 +54973,7 @@ async function buildContracts(fixturesPath, rustToolchain) {
   for (const contract of fixtures.contracts) {
     const destination = path4.resolve(fixturesDir, contract.wasm_path);
     let dir = path4.dirname(destination);
-    while (!fs4.existsSync(path4.join(dir, "Cargo.toml"))) {
+    while (!fs3.existsSync(path4.join(dir, "Cargo.toml"))) {
       const parent = path4.dirname(dir);
       if (parent === dir)
         throw new Error(
@@ -54257,7 +55020,7 @@ async function buildContracts(fixturesPath, rustToolchain) {
     if (!wasm) {
       let outputDir;
       try {
-        outputDir = fs4.mkdtempSync(path4.join(os.tmpdir(), "weighin-build-"));
+        outputDir = fs3.mkdtempSync(path4.join(os.tmpdir(), "weighin-build-"));
       } catch (error2) {
         throw new Error(
           `Cannot create build temporary storage: ${error2.message}`
@@ -54282,7 +55045,7 @@ async function buildContracts(fixturesPath, rustToolchain) {
           path4.dirname(pkg.manifest_path),
           { ...env, TMPDIR: outputDir, TMP: outputDir, TEMP: outputDir }
         );
-        wasm = fs4.readFileSync(
+        wasm = fs3.readFileSync(
           path4.join(outputDir, `${pkg.name.replace(/-/g, "_")}.wasm`)
         );
         verifyBuildStorage(outputDir, Math.max(1024 * 1024, wasm.length));
@@ -54290,11 +55053,11 @@ async function buildContracts(fixturesPath, rustToolchain) {
           throw new Error("Stellar build did not produce a valid WASM module");
         artifacts.set(pkg.manifest_path, wasm);
       } finally {
-        fs4.rmSync(outputDir, { recursive: true, force: true });
+        fs3.rmSync(outputDir, { recursive: true, force: true });
       }
     }
-    fs4.mkdirSync(path4.dirname(destination), { recursive: true });
-    fs4.writeFileSync(destination, wasm);
+    fs3.mkdirSync(path4.dirname(destination), { recursive: true });
+    fs3.writeFileSync(destination, wasm);
     const record = {
       wasm_path: destination,
       manifest_path: pkg.manifest_path,
@@ -54340,7 +55103,7 @@ async function buildForRevision(fixturesPath, worktreeRoot, rustToolchain, build
 }
 
 // src/report.ts
-var fs5 = __toESM(require("fs"));
+var fs4 = __toESM(require("fs"));
 var path5 = __toESM(require("path"));
 var core2 = __toESM(require_core());
 function writeReportFile(reportPathInput, headWorkspace, body) {
@@ -54348,10 +55111,10 @@ function writeReportFile(reportPathInput, headWorkspace, body) {
   const targetPath = path5.resolve(headWorkspace, reportPathInput);
   try {
     const parentDir = path5.dirname(targetPath);
-    if (!fs5.existsSync(parentDir)) {
-      fs5.mkdirSync(parentDir, { recursive: true });
+    if (!fs4.existsSync(parentDir)) {
+      fs4.mkdirSync(parentDir, { recursive: true });
     }
-    fs5.writeFileSync(targetPath, body, "utf8");
+    fs4.writeFileSync(targetPath, body, "utf8");
     core2.info(`Wrote Markdown report to ${targetPath}`);
   } catch (err) {
     throw new Error(
@@ -54407,11 +55170,13 @@ async function assertRpcHealthy(rpcUrl) {
     if (!res.ok) {
       throw new Error(`HTTP ${res.status} ${res.statusText}`);
     }
-    const json = await res.json();
-    if (json.error) {
-      throw new Error(`RPC error: ${JSON.stringify(json.error)}`);
+    const health = parseJsonRpcResponse(await res.text(), 1);
+    if ("error" in health) {
+      throw new Error(
+        `RPC getHealth method error: ${JSON.stringify(health.error)}`
+      );
     }
-    if (json.result?.status !== "healthy")
+    if (health.result?.status !== "healthy")
       throw new Error("RPC has not reported healthy");
     const network = await fetch(rpcUrl, {
       method: "POST",
@@ -54421,11 +55186,17 @@ async function assertRpcHealthy(rpcUrl) {
     });
     if (!network.ok)
       throw new Error(`HTTP ${network.status} ${network.statusText}`);
-    const metadata = await network.json();
-    if (metadata.error || typeof metadata.result?.passphrase !== "string" || !metadata.result.passphrase.trim()) {
+    const metadata = parseJsonRpcResponse(await network.text(), 2);
+    if ("error" in metadata) {
+      throw new Error(
+        `RPC getNetwork method error: ${JSON.stringify(metadata.error)}`
+      );
+    }
+    const networkResult = metadata.result;
+    if (typeof networkResult?.passphrase !== "string" || !networkResult.passphrase.trim()) {
       throw new Error("Invalid RPC network metadata");
     }
-    core3.info(`RPC healthy \u2014 network: ${metadata.result.passphrase}`);
+    core3.info(`RPC healthy \u2014 network: ${networkResult.passphrase}`);
   } catch (err) {
     core3.setFailed(
       `Soroban RPC at ${sanitizeEndpoint(rpcUrl)} is not reachable: ${redactEndpointSecrets(String(err?.message ?? err), rpcUrl)}
@@ -54433,6 +55204,42 @@ Start the network before invoking this action (e.g. via stellar/quickstart or sc
     );
     throw err;
   }
+}
+function isPathWithin(root, candidate) {
+  const relative3 = path6.relative(root, candidate);
+  return relative3 === "" || relative3 !== ".." && !relative3.startsWith(`..${path6.sep}`) && !path6.isAbsolute(relative3);
+}
+function resolveRevisionFixturesPath(worktreeRoot, fixturesPathInput, revision) {
+  const invalidPathMessage = `fixtures-path for ${revision} must be a relative path inside the ${revision} worktree`;
+  if (!fixturesPathInput.trim() || path6.isAbsolute(fixturesPathInput) || path6.win32.isAbsolute(fixturesPathInput) || /^[A-Za-z]:/.test(fixturesPathInput)) {
+    throw new Error(invalidPathMessage);
+  }
+  const root = path6.resolve(worktreeRoot);
+  const resolved = path6.resolve(root, fixturesPathInput);
+  if (!isPathWithin(root, resolved)) throw new Error(invalidPathMessage);
+  try {
+    const realRoot = fs5.realpathSync(root);
+    let current = root;
+    for (const segment of path6.relative(root, resolved).split(path6.sep)) {
+      if (!segment) continue;
+      current = path6.join(current, segment);
+      let currentStats;
+      try {
+        currentStats = fs5.lstatSync(current);
+      } catch (error2) {
+        if (error2.code === "ENOENT") break;
+        throw error2;
+      }
+      if (currentStats.isSymbolicLink() && !isPathWithin(realRoot, fs5.realpathSync(current))) {
+        throw new Error(invalidPathMessage);
+      }
+    }
+  } catch (error2) {
+    if (error2 instanceof Error && error2.message === invalidPathMessage)
+      throw error2;
+    throw new Error(`${invalidPathMessage}: could not verify symlink targets`);
+  }
+  return resolved;
 }
 async function capture(cmd, args, cwd) {
   let out = "";
@@ -54447,6 +55254,63 @@ async function capture(cmd, args, cwd) {
   });
   return out.trim();
 }
+async function captureRaw(cmd, args, cwd) {
+  let out = "";
+  await exec5.exec(cmd, args, {
+    cwd,
+    silent: true,
+    listeners: {
+      stdout: (d) => {
+        out += d.toString();
+      }
+    }
+  });
+  return out;
+}
+async function loadPolicy(repoDir, configPathRel, trustedRef, trustedPath) {
+  if (!trustedRef && !trustedPath) {
+    const configPath = path6.resolve(repoDir, configPathRel || "weighin.toml");
+    const content2 = fs5.existsSync(configPath) ? fs5.readFileSync(configPath, "utf8") : "";
+    return {
+      config: content2 ? loadConfigContent(content2, configPath) : null,
+      origin: {
+        mode: "head",
+        path: path6.relative(repoDir, configPath),
+        revision: await getHeadSha(repoDir),
+        content_sha256: policyContentSha256(content2)
+      }
+    };
+  }
+  if (!trustedRef || !trustedPath)
+    throw new Error(
+      "trusted-policy-ref and trusted-policy-path must be supplied together"
+    );
+  const fetched = await capture(
+    "git",
+    ["fetch", "--depth=1", "origin", trustedRef],
+    repoDir
+  );
+  void fetched;
+  const revision = await capture("git", ["rev-parse", "FETCH_HEAD"], repoDir);
+  const content = await captureRaw(
+    "git",
+    ["show", `${revision}:${trustedPath}`],
+    repoDir
+  );
+  if (!content.trim())
+    throw new Error(
+      `Trusted policy is missing or empty: ${trustedPath} at ${revision}`
+    );
+  return {
+    config: loadConfigContent(content, `${revision}:${trustedPath}`),
+    origin: {
+      mode: "trusted",
+      path: trustedPath,
+      revision,
+      content_sha256: policyContentSha256(content)
+    }
+  };
+}
 async function getHeadSha(dir) {
   try {
     return await capture("git", ["rev-parse", "HEAD"], dir);
@@ -54458,8 +55322,8 @@ function getSdkVersion(repoDir) {
   for (const rel of ["Cargo.lock", "contract/Cargo.lock"]) {
     const lockPath = path6.join(repoDir, rel);
     try {
-      if (fs6.existsSync(lockPath)) {
-        const lock = fs6.readFileSync(lockPath, "utf8");
+      if (fs5.existsSync(lockPath)) {
+        const lock = fs5.readFileSync(lockPath, "utf8");
         const m = lock.match(/name = "soroban-sdk"\nversion = "([^"]+)"/);
         if (m) return m[1];
       }
@@ -54472,7 +55336,7 @@ async function checkoutRef(repoRoot, ref, label) {
   await exec5.exec("git", ["fetch", "--depth=1", "origin", ref], {
     cwd: repoRoot
   });
-  const dir = fs6.mkdtempSync(path6.join(os2.tmpdir(), `weighin-${label}-`));
+  const dir = fs5.mkdtempSync(path6.join(os2.tmpdir(), `weighin-${label}-`));
   core3.info(`Checking out ${ref} into ${dir}`);
   try {
     await exec5.exec("git", ["worktree", "add", "--detach", dir, "FETCH_HEAD"], {
@@ -54536,6 +55400,8 @@ async function run() {
   try {
     const fixturesPathRel = core3.getInput("fixtures-path", { required: true });
     const configPathRel = core3.getInput("config-path");
+    const trustedPolicyRef = core3.getInput("trusted-policy-ref").trim();
+    const trustedPolicyPath = core3.getInput("trusted-policy-path").trim();
     const rpcUrl = core3.getInput("rpc-url") || "http://localhost:8000/rpc";
     configuredRpcUrl = rpcUrl;
     const githubToken = core3.getInput("github-token");
@@ -54550,22 +55416,28 @@ async function run() {
     }
     const headWorkspace = process.env["GITHUB_WORKSPACE"] ?? process.cwd();
     const baseRef = baseRefInput || context2.payload.pull_request?.base?.ref || "main";
-    keyDir = fs6.mkdtempSync(path6.join(os2.tmpdir(), "weighin-key-"));
-    fs6.chmodSync(keyDir, 448);
+    keyDir = fs5.mkdtempSync(path6.join(os2.tmpdir(), "weighin-key-"));
+    fs5.chmodSync(keyDir, 448);
     sharedKeyFile = path6.join(keyDir, "weighin-deployer.key");
     core3.info(`Base ref:   ${baseRef}`);
     core3.info(`RPC URL:    ${sanitizeEndpoint(rpcUrl)}`);
     core3.info(`Fixtures:   ${fixturesPathRel}`);
     core3.info(`Key file:   ${sharedKeyFile}`);
     await assertRpcHealthy(rpcUrl);
-    const headFixturesPath = path6.resolve(headWorkspace, fixturesPathRel);
-    const fixtureId = path6.relative(headWorkspace, headFixturesPath);
-    const configPath = path6.resolve(
+    const headFixturesPath = resolveRevisionFixturesPath(
       headWorkspace,
-      configPathRel || "weighin.toml"
+      fixturesPathRel,
+      "HEAD"
     );
-    const config2 = loadConfig(configPath);
-    if (!fs6.existsSync(headFixturesPath)) {
+    const fixtureId = path6.relative(path6.resolve(headWorkspace), headFixturesPath).split(path6.sep).join("/");
+    const policy = await loadPolicy(
+      headWorkspace,
+      configPathRel,
+      trustedPolicyRef,
+      trustedPolicyPath
+    );
+    const config2 = policy.config;
+    if (!fs5.existsSync(headFixturesPath)) {
       throw new Error(`fixtures-path not found: ${headFixturesPath}`);
     }
     core3.startGroup("Building + measuring HEAD");
@@ -54608,8 +55480,12 @@ async function run() {
       const checkout = await checkoutRef(headWorkspace, baseRef, "base");
       baseDir = checkout.dir;
       baseSha = checkout.sha;
-      const baseFixturesPath = path6.resolve(baseDir, fixturesPathRel);
-      if (!fs6.existsSync(baseFixturesPath)) {
+      const baseFixturesPath = resolveRevisionFixturesPath(
+        baseDir,
+        fixturesPathRel,
+        "BASE"
+      );
+      if (!fs5.existsSync(baseFixturesPath)) {
         throw new Error("fixtures-path not found in base ref");
       } else {
         await buildForRevision(
@@ -54673,7 +55549,13 @@ async function run() {
     const result = violations.length > 0 ? "fail" : "pass";
     core3.setOutput("result", result);
     core3.setOutput("diff-json", JSON.stringify(diff));
-    const body = renderComment(diff, violations, baseRef, headSha);
+    const body = renderComment(
+      diff,
+      violations,
+      baseRef,
+      headSha,
+      policy.origin
+    );
     if (process.env.GITHUB_STEP_SUMMARY)
       await core3.summary.addRaw(body).write();
     if (reportPathInput) writeReportFile(reportPathInput, headWorkspace, body);
@@ -54681,10 +55563,10 @@ async function run() {
       const prNumber = context2.payload.pull_request?.number;
       if (prNumber) {
         const destination = path6.resolve(headWorkspace, metadataPathInput);
-        fs6.mkdirSync(path6.dirname(destination), { recursive: true });
+        fs5.mkdirSync(path6.dirname(destination), { recursive: true });
         const { owner, repo } = context2.repo;
         const metadata = buildPrMetadata(`${owner}/${repo}`, prNumber, headSha);
-        fs6.writeFileSync(
+        fs5.writeFileSync(
           destination,
           JSON.stringify(metadata, null, 2),
           "utf8"
@@ -54706,7 +55588,7 @@ async function run() {
   } finally {
     if (keyDir) {
       try {
-        fs6.rmSync(keyDir, { recursive: true, force: true });
+        fs5.rmSync(keyDir, { recursive: true, force: true });
         core3.info(`Removed owned deployer key directory: ${keyDir}`);
       } catch (err) {
         core3.warning(

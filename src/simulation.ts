@@ -1,7 +1,11 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as crypto from "crypto";
-import { redactEndpointSecrets, sanitizeEndpoint } from "./endpoint";
+import {
+  parseJsonRpcResponse,
+  redactEndpointSecrets,
+  sanitizeEndpoint,
+} from "./endpoint";
 import { execFile } from "child_process";
 import { Keypair, Transaction, xdr } from "@stellar/stellar-sdk";
 import { z } from "zod";
@@ -83,6 +87,104 @@ export interface ResourceLimits {
   events_and_return_bytes: number;
 }
 
+function sameXdr(
+  left: { toXDR(format: "raw"): Buffer } | Buffer | string,
+  right: { toXDR(format: "raw"): Buffer } | Buffer | string,
+): boolean {
+  const bytes = (value: { toXDR(format: "raw"): Buffer } | Buffer | string) =>
+    typeof value === "string"
+      ? Buffer.from(value)
+      : Buffer.isBuffer(value)
+        ? value
+        : value.toXDR("raw");
+  return bytes(left).equals(bytes(right));
+}
+
+/**
+ * Verify that a captured LedgerEntryData is the value addressed by its
+ * LedgerKey. Membership in the response is not sufficient: a substituted
+ * account, contract, code hash, config setting, or durability would otherwise
+ * be accepted as snapshot state.
+ */
+export function validateLedgerKeyEntryCorrespondence(
+  keyXdr: string,
+  dataXdr: string,
+): void {
+  const key = xdr.LedgerKey.fromXDR(keyXdr, "base64");
+  const data = xdr.LedgerEntryData.fromXDR(dataXdr, "base64");
+  const keyName = key.switch().name;
+  const dataName = data.switch().name;
+  if (keyName === "account") {
+    if (
+      dataName !== "account" ||
+      !sameXdr(key.account().accountId(), data.account().accountId())
+    )
+      throw new Error("Ledger entry/key mismatch: account identity");
+  } else if (keyName === "trustline") {
+    if (
+      dataName !== "trustline" ||
+      !sameXdr(key.trustLine().accountId(), data.trustLine().accountId()) ||
+      !sameXdr(key.trustLine().asset(), data.trustLine().asset())
+    )
+      throw new Error("Ledger entry/key mismatch: trustline identity");
+  } else if (keyName === "offer") {
+    if (
+      dataName !== "offer" ||
+      !sameXdr(key.offer().sellerId(), data.offer().sellerId()) ||
+      !sameXdr(key.offer().offerId(), data.offer().offerId())
+    )
+      throw new Error("Ledger entry/key mismatch: offer identity");
+  } else if (keyName === "data") {
+    if (
+      dataName !== "data" ||
+      !sameXdr(key.data().accountId(), data.data().accountId()) ||
+      !sameXdr(key.data().dataName(), data.data().dataName())
+    )
+      throw new Error("Ledger entry/key mismatch: data identity");
+  } else if (keyName === "claimableBalance") {
+    if (
+      dataName !== "claimableBalance" ||
+      !sameXdr(
+        key.claimableBalance().balanceId(),
+        data.claimableBalance().balanceId(),
+      )
+    )
+      throw new Error("Ledger entry/key mismatch: claimable-balance identity");
+  } else if (keyName === "contractData") {
+    if (
+      dataName !== "contractData" ||
+      !sameXdr(key.contractData().contract(), data.contractData().contract()) ||
+      !sameXdr(key.contractData().key(), data.contractData().key()) ||
+      key.contractData().durability().name !==
+        data.contractData().durability().name
+    )
+      throw new Error("Ledger entry/key mismatch: contract-data identity");
+  } else if (keyName === "contractCode") {
+    if (
+      dataName !== "contractCode" ||
+      !sameXdr(key.contractCode().hash(), data.contractCode().hash())
+    )
+      throw new Error("Ledger entry/key mismatch: contract-code hash");
+  } else if (keyName === "configSetting") {
+    if (
+      dataName !== "configSetting" ||
+      key.configSetting().configSettingId().name !==
+        data.configSetting().switch().name
+    )
+      throw new Error("Ledger entry/key mismatch: config-setting identity");
+  } else if (keyName === "ttl") {
+    if (
+      dataName !== "ttl" ||
+      !sameXdr(key.ttl().keyHash(), data.ttl().keyHash())
+    )
+      throw new Error("Ledger entry/key mismatch: TTL identity");
+  } else {
+    throw new Error(
+      `Unsupported LedgerKey variant for correspondence validation: ${keyName}`,
+    );
+  }
+}
+
 function execute(
   file: string,
   args: string[],
@@ -120,9 +222,16 @@ function execute(
                 new Error("Simulation helper execution cancelled"),
             );
           } else {
-            reject(
-              new Error(`Simulation helper failed: ${stderr || error.message}`),
-            );
+            const failure = new Error(
+              `Simulation helper failed: ${stderr || error.message}`,
+            ) as Error & { stdout?: string; exitCode?: number };
+            failure.stdout = stdout;
+            failure.exitCode =
+              typeof (error as NodeJS.ErrnoException & { code?: unknown })
+                .code === "number"
+                ? (error as NodeJS.ErrnoException & { code: number }).code
+                : undefined;
+            reject(failure);
           }
         } else resolve(stdout);
       },
@@ -131,6 +240,53 @@ function execute(
     child.stdin?.on("error", () => {});
     child.stdin?.end(input ?? "");
   });
+}
+
+interface HelperFailureEnvelope {
+  protocol_version: 1;
+  status:
+    | "uncaptured"
+    | "unsupported"
+    | "invalid_input"
+    | "incomplete"
+    | "host_failure";
+  keys?: string[];
+  message: string;
+}
+
+function parseHelperFailure(error: unknown): HelperFailureEnvelope | null {
+  const stdout = (error as { stdout?: unknown })?.stdout;
+  if (typeof stdout !== "string" || !stdout.trim()) return null;
+  try {
+    const parsed = JSON.parse(stdout) as Partial<HelperFailureEnvelope>;
+    if (
+      parsed.protocol_version !== 1 ||
+      typeof parsed.status !== "string" ||
+      typeof parsed.message !== "string"
+    ) {
+      throw new Error("invalid protocol envelope");
+    }
+    if (
+      ![
+        "uncaptured",
+        "unsupported",
+        "invalid_input",
+        "incomplete",
+        "host_failure",
+      ].includes(parsed.status)
+    )
+      throw new Error("unknown protocol status");
+    if (
+      parsed.status === "uncaptured" &&
+      (!Array.isArray(parsed.keys) || parsed.keys.length === 0)
+    )
+      throw new Error("uncaptured envelope has no keys");
+    return parsed as HelperFailureEnvelope;
+  } catch (parseError) {
+    throw new Error(
+      `Invalid native helper failure protocol: ${parseError instanceof Error ? parseError.message : parseError}`,
+    );
+  }
 }
 
 let provisioned: Promise<string> | undefined;
@@ -263,6 +419,30 @@ export async function resolveSimulationHelper(
   return provisioned;
 }
 
+/** Capture and hash the helper executable's content; rejects missing, unreadable, or non-file paths. */
+export function captureHelperIdentity(helperPath: string): string {
+  try {
+    const stats = fs.statSync(helperPath);
+    if (!stats.isFile()) {
+      throw new Error(
+        `Simulation helper at ${helperPath} is not a regular file`,
+      );
+    }
+    const bytes = fs.readFileSync(helperPath);
+    return sha256(bytes);
+  } catch (err) {
+    if (
+      err instanceof Error &&
+      err.message.startsWith("Simulation helper at")
+    ) {
+      throw err;
+    }
+    throw new Error(
+      `Failed to capture simulation helper identity for ${helperPath}: ${err instanceof Error ? err.message : String(err)}`,
+    );
+  }
+}
+
 /** Execute the versioned helper transport; never accept missing/invalid meters. */
 export async function simulateSnapshot(
   input: SimulationInput,
@@ -345,13 +525,17 @@ const computeConfigNames = new Set([
   "configSettingContractCostParamsMemoryBytes",
   "configSettingStateArchival",
 ]);
-const configKeys = configNames.map((name) =>
-  xdr.LedgerKey.configSetting(
-    new xdr.LedgerKeyConfigSetting({
-      configSettingId: xdr.ConfigSettingId[name](),
-    }),
-  ).toXDR("base64"),
+const configNameToKey = new Map(
+  configNames.map((name) => [
+    name,
+    xdr.LedgerKey.configSetting(
+      new xdr.LedgerKeyConfigSetting({
+        configSettingId: xdr.ConfigSettingId[name](),
+      }),
+    ).toXDR("base64"),
+  ]),
 );
+const configKeys = Array.from(configNameToKey.values());
 const entriesSchema = z.object({
   latestLedger: integer.positive(),
   entries: z.array(
@@ -431,6 +615,8 @@ class RpcError extends Error {
   }
 }
 
+let nextRpcRequestId = 0;
+
 // Only the error actually observed during live snapshot reads is retryable.
 // HTTP failures, other RPC errors and simulation/helper failures remain fatal.
 function isTransientLedgerRead(failure: unknown): boolean {
@@ -461,11 +647,17 @@ async function callRpc(
   const combinedSignal = signal
     ? AbortSignal.any([signal, timeoutSignal])
     : timeoutSignal;
+  const requestId = ++nextRpcRequestId;
   try {
     response = await fetch(rpcUrl, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: requestId,
+        method,
+        params,
+      }),
       signal: combinedSignal,
     });
   } catch (error) {
@@ -480,10 +672,29 @@ async function callRpc(
     throw new Error(
       `RPC ${method}: HTTP ${response.status} at ${sanitizeEndpoint(rpcUrl)}`,
     );
-  const body = (await response.json()) as { error?: unknown; result?: unknown };
-  if (body.error || body.result === undefined)
-    throw new RpcError(method, body.error, rpcUrl);
-  return body.result;
+  let responseBody: string;
+  try {
+    responseBody = await response.text();
+  } catch (error) {
+    if (signal?.aborted) {
+      throw signal.reason || new Error(`RPC ${method} cancelled`);
+    }
+    throw new Error(
+      `RPC ${method} response transport failure at ${sanitizeEndpoint(rpcUrl)}: ${redactEndpointSecrets(String((error as any)?.message ?? error), rpcUrl)}`,
+    );
+  }
+  let envelope;
+  try {
+    envelope = parseJsonRpcResponse(responseBody, requestId);
+  } catch (error) {
+    throw new Error(
+      `RPC ${method} invalid response at ${sanitizeEndpoint(rpcUrl)}: ${redactEndpointSecrets(String((error as Error)?.message ?? error), rpcUrl)}`,
+    );
+  }
+  if ("error" in envelope) {
+    throw new RpcError(method, envelope.error, rpcUrl);
+  }
+  return envelope.result;
 }
 
 export interface MeasureInvocationOptions {
@@ -515,6 +726,11 @@ export async function measureInvocation(
     throw new Error(
       `Unsupported protocol ${network.protocolVersion}: simulation helper supports 28`,
     );
+  if (transaction.networkPassphrase !== network.passphrase) {
+    throw new Error(
+      `Transaction network passphrase "${transaction.networkPassphrase}" does not match RPC network passphrase "${network.passphrase}"`,
+    );
+  }
   const keys = new Set(configKeys);
   let transientReadFailures = 0;
   let lastCause:
@@ -530,6 +746,7 @@ export async function measureInvocation(
     transient_read: 0,
   };
   let discoveredKeysCount = 0;
+  let initialHelperSha256: string | null = null;
   for (let attempt = 0; attempt < 30; attempt++) {
     if (signal?.aborted) {
       throw signal.reason || new Error("Measurement cancelled");
@@ -642,22 +859,47 @@ export async function measureInvocation(
           signal,
         ),
       );
-    const row = headers.ledgers.find(
+    const matchingRows = headers.ledgers.filter(
       (item) => item.sequence === simulation.latestLedger,
     );
-    if (!row) throw new Error("Snapshot ledger header unavailable");
-    const header = xdr.LedgerHeaderHistoryEntry.fromXDR(
-      row.headerXdr,
-      "base64",
-    ).header();
+    if (matchingRows.length === 0) {
+      throw new Error("Snapshot ledger header unavailable");
+    }
+    if (matchingRows.length > 1) {
+      throw new Error(
+        `Ambiguous duplicate ledger headers returned for sequence ${simulation.latestLedger}`,
+      );
+    }
+    const row = matchingRows[0];
+    let historyEntry: xdr.LedgerHeaderHistoryEntry;
+    try {
+      historyEntry = xdr.LedgerHeaderHistoryEntry.fromXDR(
+        row.headerXdr,
+        "base64",
+      );
+    } catch {
+      throw new Error("Malformed ledger header history entry XDR");
+    }
+    const header = historyEntry.header();
     if (
       header.ledgerSeq() !== simulation.latestLedger ||
       header.ledgerVersion() !== network.protocolVersion
     ) {
       throw new Error("Snapshot header ledger/protocol mismatch");
     }
+    const missingConfigs = configNames.filter((name) => {
+      const key = configNameToKey.get(name)!;
+      const row = rows.get(key);
+      return !row || !row.xdr;
+    });
+    if (missingConfigs.length > 0) {
+      throw new Error(
+        `Missing required configuration entries: [${missingConfigs.join(", ")}]`,
+      );
+    }
     const entries: SnapshotEntry[] = requested.map((key) => {
       const entry = rows.get(key);
+      if (entry?.xdr) validateLedgerKeyEntryCorrespondence(key, entry.xdr);
       return entry
         ? {
             key,
@@ -690,10 +932,48 @@ export async function measureInvocation(
       instruction_leeway: 0,
       seed: Array(32).fill(0),
     };
+    const preHelperSha256 = captureHelperIdentity(helperPath);
+    if (initialHelperSha256 === null) {
+      initialHelperSha256 = preHelperSha256;
+    } else if (preHelperSha256 !== initialHelperSha256) {
+      throw new Error(
+        `Simulation helper executable was modified across attempts (expected: ${initialHelperSha256}, current: ${preHelperSha256})`,
+      );
+    }
     let output: SimulationOutput;
     try {
       output = await simulateSnapshot(input, helperPath, signal);
     } catch (failure) {
+      const postFailureSha256 = captureHelperIdentity(helperPath);
+      if (postFailureSha256 !== initialHelperSha256) {
+        throw new Error(
+          `Simulation helper executable was modified during execution (expected: ${initialHelperSha256}, current: ${postFailureSha256})`,
+        );
+      }
+      const envelope = parseHelperFailure(failure);
+      if (envelope) {
+        if (envelope.status !== "uncaptured")
+          throw new Error(
+            `Native helper ${envelope.status}: ${envelope.message}`,
+          );
+        const additional = (envelope.keys ?? []).filter(
+          (key) => !keys.has(key),
+        );
+        if (!additional.length)
+          throw new Error("Native helper reported no new captured keys");
+        for (const key of additional) {
+          try {
+            xdr.LedgerKey.fromXDR(key, "base64");
+          } catch {
+            throw new Error("Native helper reported malformed LedgerKey");
+          }
+          keys.add(key);
+        }
+        lastCause = "newly_discovered_keys";
+        causes.newly_discovered_keys++;
+        discoveredKeysCount += additional.length;
+        continue;
+      }
       const message =
         failure instanceof Error ? failure.message : String(failure);
       const missing = [
@@ -709,6 +989,12 @@ export async function measureInvocation(
         keys.add(key);
       }
       continue; // Recapture all state, including newly discovered keys, at one ledger.
+    }
+    const postHelperSha256 = captureHelperIdentity(helperPath);
+    if (postHelperSha256 !== initialHelperSha256) {
+      throw new Error(
+        `Simulation helper executable was modified during execution (expected: ${initialHelperSha256}, current: ${postHelperSha256})`,
+      );
     }
     // RPC events are DiagnosticEvent wrappers. Only successful non-diagnostic
     // ContractEvents contribute to this charged resource; preserve their order.
@@ -761,6 +1047,12 @@ export async function measureInvocation(
         "Native compute limits disagree with captured configuration",
       );
     }
+    const finalHelperSha256 = captureHelperIdentity(helperPath);
+    if (finalHelperSha256 !== initialHelperSha256) {
+      throw new Error(
+        `Simulation helper executable was modified before emitting provenance (expected: ${initialHelperSha256}, current: ${finalHelperSha256})`,
+      );
+    }
     return {
       output,
       limits,
@@ -768,7 +1060,7 @@ export async function measureInvocation(
         source: output.source,
         source_version: output.source_version,
         protocol: output.protocol,
-        helper_sha256: sha256(fs.readFileSync(helperPath)),
+        helper_sha256: initialHelperSha256,
         network_id: sha256(network.passphrase),
         ledger: simulation.latestLedger,
         header_sha256: sha256(input.header_xdr),

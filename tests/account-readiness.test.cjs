@@ -46,6 +46,16 @@ async function scenario(handler) {
   global.fetch = async (url, options) => {
     calls.push({ url, options });
     return handler(url, options, calls);
+async function scenario(handler, preserveEnvelope = false) {
+  const oldFetch = global.fetch, oldTimer = global.setTimeout, oldNow = Date.now;
+  let elapsed = 0; const calls = [];
+  global.fetch = async (url, options) => {
+    calls.push({ url, options });
+    const response = await handler(url, options, calls);
+    if (preserveEnvelope || options?.method !== 'POST') return response;
+    const body = await response.json();
+    const request = JSON.parse(options.body);
+    return new Response(JSON.stringify({ ...body, jsonrpc: '2.0', id: request.id }), { status: response.status });
   };
   Date.now = () => elapsed;
   global.setTimeout = (callback, delay, ...args) => {
@@ -169,6 +179,7 @@ test("RPC error is not interpreted as account absence and does not trigger fundi
     }),
     /Account readiness RPC error/,
   );
+  await assert.rejects(scenario(() => { calls++; return new Response(JSON.stringify({ error: { code: -32603, message: 'internal failure' } })); }), /Account readiness RPC method error.*-32603/);
   assert.equal(calls, 1);
 });
 test("malformed or unrelated account rows are rejected before measurement", async () => {
@@ -209,4 +220,31 @@ test("permanent HTTP error with a stalled body fails from headers without retryi
   );
   assert.equal(funds, 1);
   assert.equal(cancelled, true);
+test('malformed JSON-RPC envelopes fail before account funding', async () => {
+  const validResult = { entries: [], latestLedger: 100 };
+  const malformed = [
+    { jsonrpc: '1.0', id: 1, result: validResult },
+    { jsonrpc: '2.0', id: 9, result: validResult },
+    { jsonrpc: '2.0', id: 1, result: validResult, error: { code: -1, message: 'conflict' } },
+    { jsonrpc: '2.0', id: 1 },
+    { jsonrpc: '2.0', result: validResult },
+    { jsonrpc: '2.0', id: 1, error: { code: '-32603', message: 'wrong code type' } },
+    { jsonrpc: '2.0', id: 1, result: validResult, extra: true },
+    'not json',
+  ];
+  for (const envelope of malformed) {
+    let calls = 0;
+    await assert.rejects(
+      scenario(() => { calls++; return new Response(typeof envelope === 'string' ? envelope : JSON.stringify(envelope)); }, true),
+      /Account readiness invalid RPC response/,
+    );
+    assert.equal(calls, 1);
+  }
+});
+
+test('permanent HTTP error with a stalled body fails from headers without retrying', async () => {
+  let funds = 0, cancelled = false;
+  await assert.rejects(scenario((url, options) => options.method === 'POST' ? absent() :
+    (funds++, new Response(new ReadableStream({ cancel() { cancelled = true; } }), { status: 403 }))), /HTTP 403/);
+  assert.equal(funds, 1); assert.equal(cancelled, true);
 });
