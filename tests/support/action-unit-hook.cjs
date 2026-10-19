@@ -78,7 +78,10 @@ Module._load = function (name, parent, ...args) {
     parent?.filename.endsWith("/dist/action.js") ||
     parent?.filename.endsWith("/dist/build.js")
   ) {
-    if (name === "@actions/core" && parent?.filename.endsWith("/dist/action.js")) {
+    if (
+      name === "@actions/core" &&
+      parent?.filename.endsWith("/dist/action.js")
+    ) {
       const core = load.call(this, name, parent, ...args);
       if (mode === "summary-delivery-failure") {
         let failedFirstWrite = false;

@@ -230,7 +230,8 @@ function outputValue(output, name) {
   const lines = output.split(/\r?\n/);
   let found = null;
   for (let i = 0; i < lines.length; i++) {
-    if (lines[i].startsWith(`${name}=`)) found = lines[i].slice(name.length + 1);
+    if (lines[i].startsWith(`${name}=`))
+      found = lines[i].slice(name.length + 1);
     else if (lines[i].startsWith(`${name}<<`)) {
       const delimiter = lines[i].slice(name.length + 2);
       const end = lines.indexOf(delimiter, i + 1);
@@ -274,9 +275,18 @@ test("Action rejects a mismatched health response before account readiness or bu
 
 test("Action rejects a healthy but unsupported RPC network before builds or funding", () => {
   for (const [mode, diagnostic] of [
-    ["rpc-wrong-passphrase", /RPC is healthy but incompatible: unsupported network passphrase/],
-    ["rpc-wrong-protocol", /RPC is healthy but incompatible: unsupported protocol 27/],
-    ["rpc-missing-protocol", /RPC is healthy but incompatible: invalid network metadata/],
+    [
+      "rpc-wrong-passphrase",
+      /RPC is healthy but incompatible: unsupported network passphrase/,
+    ],
+    [
+      "rpc-wrong-protocol",
+      /RPC is healthy but incompatible: unsupported protocol 27/,
+    ],
+    [
+      "rpc-missing-protocol",
+      /RPC is healthy but incompatible: invalid network metadata/,
+    ],
   ]) {
     const result = action(mode);
     assert.equal(result.status, 1);
@@ -287,15 +297,35 @@ test("Action rejects a healthy but unsupported RPC network before builds or fund
 });
 
 test("Action validates supported baseline branch, tag, and SHA forms", () => {
-  for (const ref of ["feature/topic", "v1.2.3", "0123456789abcdef0123456789abcdef01234567"]) {
-    const result = action("control", policy, null, null, "fixtures.json", undefined, ref);
+  for (const ref of [
+    "feature/topic",
+    "v1.2.3",
+    "0123456789abcdef0123456789abcdef01234567",
+  ]) {
+    const result = action(
+      "control",
+      policy,
+      null,
+      null,
+      "fixtures.json",
+      undefined,
+      ref,
+    );
     assert.equal(result.status, 0, ref + result.stdout + result.stderr);
   }
 });
 
 test("Action rejects invalid baseline refs before RPC checks, builds, or funding", () => {
   for (const ref of ["   ", "--upload-pack=evil", "broken..ref", "trailing/"]) {
-    const result = action("control", policy, null, null, "fixtures.json", undefined, ref);
+    const result = action(
+      "control",
+      policy,
+      null,
+      null,
+      "fixtures.json",
+      undefined,
+      ref,
+    );
     assert.equal(result.status, 1, ref);
     assert.match(result.summary, /Invalid base-ref/);
     assert.equal(result.keyPaths.length, 0, ref);
@@ -541,7 +571,8 @@ test("Action preserves a validated diff and delivery diagnostic when report writ
     null,
     "blocked/report.md",
     "fixtures.json",
-    ({ head }) => fs.writeFileSync(path.join(head, "blocked"), "not a directory"),
+    ({ head }) =>
+      fs.writeFileSync(path.join(head, "blocked"), "not a directory"),
   );
   assert.equal(result.status, 1);
   assert.equal(outputValue(result.output, "result"), "fail");

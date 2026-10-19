@@ -152,7 +152,6 @@ test("measureInvocation interrupts captive-core transient read backoff delay pro
           result: { passphrase: Networks.TESTNET, protocolVersion: 28 },
         }),
       );
-      return new Response(JSON.stringify({ jsonrpc: "2.0", id: body.id, result: { passphrase: Networks.TESTNET, protocolVersion: 28 } }));
     }
     const calls = require("../docs/experiments/repeatability/completed/run-1-rpc.json");
     const replay =
