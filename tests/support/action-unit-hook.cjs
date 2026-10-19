@@ -31,7 +31,11 @@ globalThis.fetch = async (url, options) => {
     if (!method) return new Response("still warming", { status: 502 });
     if (method === "getLedgerEntries")
       return new Response(
-        JSON.stringify({ jsonrpc: "2.0", id: request.id, result: { entries: [], latestLedger: 100 } }),
+        JSON.stringify({
+          jsonrpc: "2.0",
+          id: request.id,
+          result: { entries: [], latestLedger: 100 },
+        }),
       );
   }
   const result = {
@@ -39,7 +43,9 @@ globalThis.fetch = async (url, options) => {
     status: mode === "rpc-unhealthy" ? "starting" : "healthy",
   };
   if (mode === "rpc-invalid-envelope" && method === "getHealth") {
-    return new Response(JSON.stringify({ jsonrpc: "2.0", id: request.id + 1, result }));
+    return new Response(
+      JSON.stringify({ jsonrpc: "2.0", id: request.id + 1, result }),
+    );
   }
   return new Response(
     JSON.stringify({

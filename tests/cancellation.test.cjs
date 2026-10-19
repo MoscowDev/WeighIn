@@ -146,9 +146,12 @@ test("measureInvocation interrupts captive-core transient read backoff delay pro
     const body = options?.body ? JSON.parse(options.body) : {};
     if (body.method === "getNetwork") {
       return new Response(
-        JSON.stringify({ result: { passphrase: "test", protocolVersion: 28 } }),
+        JSON.stringify({
+          jsonrpc: "2.0",
+          id: body.id,
+          result: { passphrase: Networks.TESTNET, protocolVersion: 28 },
+        }),
       );
-      return new Response(JSON.stringify({ jsonrpc: "2.0", id: body.id, result: { passphrase: "test", protocolVersion: 28 } }));
     }
     const calls = require("../docs/experiments/repeatability/completed/run-1-rpc.json");
     const replay =
@@ -159,7 +162,9 @@ test("measureInvocation interrupts captive-core transient read backoff delay pro
         c.raw.result?.transactionData === replay.output.transaction_data_xdr,
     );
     if (body.method === "simulateTransaction") {
-      return new Response(JSON.stringify({ ...saved.raw, jsonrpc: "2.0", id: body.id }));
+      return new Response(
+        JSON.stringify({ ...saved.raw, jsonrpc: "2.0", id: body.id }),
+      );
     }
     if (body.method === "getLedgerEntries") {
       // Simulate transient captive-core 404 error
@@ -175,7 +180,9 @@ test("measureInvocation interrupts captive-core transient read backoff delay pro
         }),
       );
     }
-    return new Response(JSON.stringify({ jsonrpc: "2.0", id: body.id, result: {} }));
+    return new Response(
+      JSON.stringify({ jsonrpc: "2.0", id: body.id, result: {} }),
+    );
   };
 
   try {
